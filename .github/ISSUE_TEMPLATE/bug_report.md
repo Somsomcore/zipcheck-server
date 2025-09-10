@@ -1,17 +1,8 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: "\U0001F41E BugFix, ✨ Feature"
-assignees: ''
-
----
-
----
 name: Bug report Template
 about: 버그 리포트 이슈 템플릿
-title: "[FIX] 이슈 제목"
-labels: ":bug: Fix"
+title: "[FIX]"
+labels: "\U0001F41E BugFix"
 assignees: ''
 
 ---
