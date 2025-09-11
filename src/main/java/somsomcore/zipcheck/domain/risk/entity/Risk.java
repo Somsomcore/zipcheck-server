@@ -70,6 +70,7 @@ public class Risk extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    // 주소
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "addr_id")
     private Address address;
