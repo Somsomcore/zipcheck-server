@@ -61,7 +61,7 @@ cloud:
       bucket: contest76-bucket
 
 jwt:
-  secret: ${JWT_SECRET:your-jwt-secret-key-should-be-at-least-256-bits-long-for-security}
+  secret: ${JWT_SECRET}
   access-token-expiration: 3600000
   refresh-token-expiration: 604800000
 
