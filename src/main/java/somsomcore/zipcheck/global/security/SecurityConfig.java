@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
                                 .requestMatchers(WHITELIST).permitAll()
+                                .requestMatchers("/api/pdfs/**").permitAll()  // 파일 관련 테스트를 위해 추가
                                 .requestMatchers(HttpMethod.GET, GET_WHITELIST).permitAll()
                                 .requestMatchers("/api/**").authenticated()
                                 .anyRequest().authenticated()
