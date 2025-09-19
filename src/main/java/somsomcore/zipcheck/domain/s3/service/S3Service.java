@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import somsomcore.zipcheck.global.apiPayload.code.status.ErrorStatus;
 import somsomcore.zipcheck.global.apiPayload.exception.GeneralException;
+import somsomcore.zipcheck.global.apiPayload.exception.handler.S3Handler;
 
 import java.io.InputStream;
 import java.util.UUID;
@@ -27,15 +28,15 @@ public class S3Service {
     private static final String PREFIX = "document/";
 
     // 업로드
-    public String uploadPdf(MultipartFile file) throws Exception {
+    public String uploadPdf(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new GeneralException(ErrorStatus.FILE_EMPTY);
+            throw new S3Handler(ErrorStatus.FILE_EMPTY);
         }
 
         // PDF MIME 체크
         String contentType = file.getContentType();
         if (contentType == null || !contentType.toLowerCase().contains("pdf")) {
-            throw new GeneralException(ErrorStatus.FILE_NOT_PDF);
+            throw new S3Handler(ErrorStatus.FILE_NOT_PDF);
         }
 
         // 파일명 설계: document/{yyyy}/{MM}/UUID-원본이름.pdf 등으로 확장 가능
@@ -49,7 +50,7 @@ public class S3Service {
             PutObjectRequest req = new PutObjectRequest(bucketName, key, is, meta);
             amazonS3.putObject(req);
         } catch (Exception e) {
-            throw new GeneralException(ErrorStatus.FILE_UPLOAD_FAILED);
+            throw new S3Handler(ErrorStatus.FILE_UPLOAD_FAILED);
         }
 
         return key; // 저장된 오브젝트 키를 반환
@@ -58,23 +59,23 @@ public class S3Service {
     // 다운로드
     public S3Object downloadPdf(String key) {
         // 키는 반드시 "document/"로 시작하게끔 검증
-        if (!key.startsWith(PREFIX)) throw new GeneralException(ErrorStatus.FILE_INVALID_PATH);
+        if (!key.startsWith(PREFIX)) throw new S3Handler(ErrorStatus.FILE_INVALID_PATH);
         try {
             return amazonS3.getObject(bucketName, key);
         } catch (Exception e) {
-            throw new GeneralException(ErrorStatus.FILE_NOT_FOUND);
+            throw new S3Handler(ErrorStatus.FILE_NOT_FOUND);
         }
     }
 
     // 삭제
     public void deletePdf(String key) {
         if (!key.startsWith(PREFIX)) {
-            throw new GeneralException(ErrorStatus.FILE_INVALID_PATH);
+            throw new S3Handler(ErrorStatus.FILE_INVALID_PATH);
         }
         try {
             amazonS3.deleteObject(bucketName, key);
         } catch (Exception e) {
-            throw new GeneralException(ErrorStatus.FILE_DELETE_FAILED);
+            throw new S3Handler(ErrorStatus.FILE_DELETE_FAILED);
         }
     }
 
