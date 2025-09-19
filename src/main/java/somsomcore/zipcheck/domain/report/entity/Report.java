@@ -26,8 +26,8 @@ public class Report extends BaseEntity {
     @Column(columnDefinition = "VARCHAR(15) DEFAULT 'PENDING'")
     private RegistrationStatus registrationStatus;
 
-    // 내용
-    @Column(nullable = false)
+    // 관리자 승인 거절 사유
+    @Column(nullable = true)
     private String rejectReason;
 
     // 내용

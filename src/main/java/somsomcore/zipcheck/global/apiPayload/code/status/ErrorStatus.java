@@ -17,6 +17,20 @@ public enum ErrorStatus implements BaseErrorCode {
 
     TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "이것은 임시 에러 메시지입니다."),
 
+    // 사용자
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER4000", "사용자를 찾을 수 없습니다."),
+
+    // 주소
+    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "ADDRESS4000", "입력하신 주소를 찾을 수 없습니다. 도로명/지번과 상세주소를 다시 확인해 주세요."),
+    GEOCODING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ADDRESS4001", "주소 좌표를 조회하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."),
+
+    // 계약 형태
+    CONTRACTTYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTRACTTYPE4000", "계약 형태를 찾을 수 없습니다."),
+
+    // 사기 분류
+    CLASSIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "CLASSIFICATION4000", "사기 분류를 찾을 수 없습니다."),
+
+
     // 파일(NCP-S3)
     FILE_EMPTY(HttpStatus.BAD_REQUEST, "FILE4000", "업로드할 파일이 비어있습니다."),
     FILE_NOT_PDF(HttpStatus.BAD_REQUEST, "FILE4001", "PDF 형식만 업로드 가능합니다."),
