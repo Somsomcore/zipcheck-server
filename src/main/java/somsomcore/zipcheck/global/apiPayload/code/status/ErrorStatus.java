@@ -20,6 +20,11 @@ public enum ErrorStatus implements BaseErrorCode {
     // 사용자
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER4000", "사용자를 찾을 수 없습니다."),
 
+    // JWT 인증
+    TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "AUTH4001", "유효하지 않은 토큰입니다."),
+    TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4002", "만료된 토큰입니다."),
+    TOKEN_USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH4003", "토큰에 해당하는 사용자를 찾을 수 없습니다."),
+
     // 주소
     ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "ADDRESS4000", "입력하신 주소를 찾을 수 없습니다. 도로명/지번과 상세주소를 다시 확인해 주세요."),
     GEOCODING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ADDRESS4001", "주소 좌표를 조회하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."),

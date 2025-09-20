@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import somsomcore.zipcheck.domain.auth.dto.AuthResponseDto;
 import somsomcore.zipcheck.domain.auth.dto.SocialLoginRequestDto;
 import somsomcore.zipcheck.domain.auth.dto.SocialUserInfoDto;
+import somsomcore.zipcheck.domain.auth.dto.TestTokenRequestDto;
 import somsomcore.zipcheck.domain.auth.dto.TokenRefreshRequestDto;
 import somsomcore.zipcheck.domain.auth.dto.TokenRefreshResponseDto;
 import somsomcore.zipcheck.domain.auth.entity.RefreshToken;
@@ -126,5 +127,22 @@ public class AuthService {
     public void logout(Long userId) {
         refreshTokenRepository.deleteByUserId(userId);
         log.info("사용자 로그아웃 완료: {}", userId);
+    }
+
+    public AuthResponseDto generateTestToken(TestTokenRequestDto request) {
+        String accessToken = jwtUtil.generateAccessToken(request.getUserId(), request.getEmail());
+        String refreshToken = jwtUtil.generateRefreshToken(request.getUserId(), request.getEmail());
+
+        saveOrUpdateRefreshToken(request.getUserId(), refreshToken);
+
+        return AuthResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .user(AuthResponseDto.UserInfo.builder()
+                        .id(request.getUserId())
+                        .name("테스트 사용자")
+                        .email(request.getEmail())
+                        .build())
+                .build();
     }
 }

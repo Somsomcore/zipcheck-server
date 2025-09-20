@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
@@ -50,6 +51,12 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
                 });
 
         return handleExceptionInternalArgs(e,HttpHeaders.EMPTY,ErrorStatus.valueOf("_BAD_REQUEST"),request,errors);
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<Object> handleUsernameNotFound(UsernameNotFoundException e, WebRequest request) {
+        return handleExceptionInternalFalse(e, ErrorStatus.TOKEN_USER_NOT_FOUND, HttpHeaders.EMPTY,
+            ErrorStatus.TOKEN_USER_NOT_FOUND.getHttpStatus(), request, null);
     }
 
     @ExceptionHandler

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import somsomcore.zipcheck.domain.auth.dto.AuthResponseDto;
 import somsomcore.zipcheck.domain.auth.dto.SocialLoginRequestDto;
+import somsomcore.zipcheck.domain.auth.dto.TestTokenRequestDto;
 import somsomcore.zipcheck.domain.auth.dto.TokenRefreshRequestDto;
 import somsomcore.zipcheck.domain.auth.dto.TokenRefreshResponseDto;
 import somsomcore.zipcheck.domain.auth.service.AuthService;
@@ -41,5 +42,12 @@ public class AuthController {
     public ApiResponse<String> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
         authService.logout(userDetails.getUser().getId());
         return ApiResponse.onSuccess("로그아웃이 완료되었습니다.");
+    }
+
+    @Operation(summary = "테스트 토큰 생성", description = "API 테스트용 임시 토큰을 생성합니다.")
+    @PostMapping("/test-token")
+    public ApiResponse<AuthResponseDto> generateTestToken(@Valid @RequestBody TestTokenRequestDto request) {
+        AuthResponseDto response = authService.generateTestToken(request);
+        return ApiResponse.onSuccess(response);
     }
 }
