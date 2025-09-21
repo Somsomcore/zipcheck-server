@@ -36,9 +36,6 @@ public class ReportCommandServiceImpl implements ReportCommandService {
     private final S3Service s3Service;
     private final GeoApiContext geoApiContext;
 
-    // 하위 폴더
-    private static final String PREFIX = "document/";
-
     // 사용자 사기 접수
     @Override
     @Transactional
@@ -48,8 +45,15 @@ public class ReportCommandServiceImpl implements ReportCommandService {
             throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
         });
 
-        // 파일 업데이트 함수 호출(fileKey 생성)
-        String fileKey = s3Service.uploadPdf(file);
+        // 계약 형태
+        ContractType contractType = contractTypeRepository.findById(requestDTO.getContractType()).orElseThrow(() -> {
+            throw new ContractTypeHandler(ErrorStatus.CONTRACTTYPE_NOT_FOUND);
+        });
+
+        // 사기 분류
+        Classification classification = classificationRepository.findById(requestDTO.getClassification()).orElseThrow(() -> {
+            throw new ContractTypeHandler(ErrorStatus.CLASSIFICATION_NOT_FOUND);
+        });
 
         // 주소 처리: DB에 없으면 지오코딩으로 lat/lng 조회 후 저장
         Address address = addressRepository
@@ -90,16 +94,8 @@ public class ReportCommandServiceImpl implements ReportCommandService {
                     }
                 });
 
-        // 계약 형태
-        ContractType contractType = contractTypeRepository.findById(requestDTO.getContractType()).orElseThrow(() -> {
-            throw new ContractTypeHandler(ErrorStatus.CONTRACTTYPE_NOT_FOUND);
-        });
-
-        // 사기 분류
-        Classification classification = classificationRepository.findById(requestDTO.getClassification()).orElseThrow(() -> {
-            throw new ContractTypeHandler(ErrorStatus.CLASSIFICATION_NOT_FOUND);
-        });
-
+        // 파일 업데이트 함수 호출(fileKey 생성)
+        String fileKey = s3Service.uploadPdf(file);
 
         Report newReport = Report.builder()
                 .registrationStatus(RegistrationStatus.PENDING)
