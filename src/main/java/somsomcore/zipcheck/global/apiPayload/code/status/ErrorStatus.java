@@ -35,10 +35,6 @@ public enum ErrorStatus implements BaseErrorCode {
     // 사기 분류
     CLASSIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "CLASSIFICATION4000", "사기 분류를 찾을 수 없습니다."),
 
-    // 신고
-    INVALID_JSON_BODY(HttpStatus.BAD_REQUEST, "REPORT4000", "요청 JSON 형식이 올바르지 않습니다. 입력값을 확인해 주세요."),
-
-
     // 파일(NCP-S3)
     FILE_EMPTY(HttpStatus.BAD_REQUEST, "FILE4000", "업로드할 파일이 비어있습니다."),
     FILE_NOT_PDF(HttpStatus.BAD_REQUEST, "FILE4001", "PDF 형식만 업로드 가능합니다."),
