@@ -33,6 +33,7 @@ public class ReportController {
     )
     @Operation(
             summary = "사용자 신고 접수 API",
+            description = "사용자가 신고글을 접수합니다.",
             requestBody = @RequestBody(
                     required = true,
                     content = @Content(
@@ -52,6 +53,15 @@ public class ReportController {
     ) {
         Report report = reportCommandService.addReport(userDetails.getUser().getId(), request, file);
         return ApiResponse.onSuccess(ReportConverter.toReportResultDTO(report));
+    }
+
+    // 사용자 신고글 삭제
+    @Operation(summary = "신고글 삭제", description = "사용자가 특정 신고글을 삭제합니다.")
+    @DeleteMapping
+    public ApiResponse<String> deleteReport(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                            @RequestParam("reportId") @Valid Long reportId) {
+        reportCommandService.deleteReport(userDetails.getUser().getId(), reportId);
+        return ApiResponse.onSuccess("신고글 삭제가 완료되었습니다.");
     }
 
     /** Swagger에서 멀티파트 각 파트를 정의하기 위한 스키마 */

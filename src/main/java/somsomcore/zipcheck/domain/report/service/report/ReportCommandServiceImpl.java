@@ -23,6 +23,7 @@ import somsomcore.zipcheck.domain.user.repository.UserRepository;
 import somsomcore.zipcheck.global.apiPayload.code.status.ErrorStatus;
 import somsomcore.zipcheck.global.apiPayload.exception.handler.AddressHandler;
 import somsomcore.zipcheck.global.apiPayload.exception.handler.ContractTypeHandler;
+import somsomcore.zipcheck.global.apiPayload.exception.handler.ReportHandler;
 import somsomcore.zipcheck.global.apiPayload.exception.handler.UserHandler;
 
 @Service
@@ -40,10 +41,8 @@ public class ReportCommandServiceImpl implements ReportCommandService {
     @Override
     @Transactional
     public Report addReport(Long memberId, ReportRequestDTO.addRequestReportDTO requestDTO, MultipartFile file){
-        // 실제 회원인지 검증
-        User user = userRepository.findById(memberId).orElseThrow(() -> {
-            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
-        });
+        // 회원 검증
+        User user = verifyUser(memberId);
 
         // 계약 형태
         ContractType contractType = contractTypeRepository.findById(requestDTO.getContractType()).orElseThrow(() -> {
@@ -110,5 +109,31 @@ public class ReportCommandServiceImpl implements ReportCommandService {
                 .build();
 
         return reportRepository.save(newReport);
+    }
+
+    // 사용자 신고글 삭제
+    @Override
+    @Transactional
+    public void deleteReport(Long userId, Long reportId){
+        User user = verifyUser(userId);
+
+        Report report = reportRepository.findByIdAndUserId(reportId, userId).orElseThrow(() -> {
+            throw new ReportHandler(ErrorStatus.REPORT_NOT_FOUND);
+        });
+
+        // 파일 삭제
+        s3Service.deletePdf(report.getDocumentUrl());
+
+        // 신고글 삭제
+        reportRepository.delete(report);
+    }
+
+
+
+    // 회원 검증
+    User verifyUser(Long userId){
+        return userRepository.findById(userId).orElseThrow(() -> {
+            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
+        });
     }
 }
