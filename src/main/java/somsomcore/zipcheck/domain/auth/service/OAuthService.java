@@ -10,6 +10,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import somsomcore.zipcheck.domain.auth.dto.SocialUserInfoDto;
 import somsomcore.zipcheck.domain.user.entity.enums.OauthType;
+import somsomcore.zipcheck.global.apiPayload.code.status.ErrorStatus;
+import somsomcore.zipcheck.global.apiPayload.exception.GeneralException;
 
 @Slf4j
 @Service
@@ -51,10 +53,10 @@ public class OAuthService {
 
         } catch (WebClientResponseException e) {
             log.error("Failed to get Kakao user info: {}", e.getMessage());
-            throw new RuntimeException("Failed to get user info from Kakao", e);
+            throw new GeneralException(ErrorStatus.OAUTH_USER_INFO_FAILED);
         } catch (Exception e) {
             log.error("Error parsing Kakao user info: {}", e.getMessage());
-            throw new RuntimeException("Error parsing Kakao user info", e);
+            throw new GeneralException(ErrorStatus.OAUTH_USER_INFO_FAILED);
         }
     }
 
@@ -84,10 +86,10 @@ public class OAuthService {
 
         } catch (WebClientResponseException e) {
             log.error("Failed to get Naver user info: {}", e.getMessage());
-            throw new RuntimeException("Failed to get user info from Naver", e);
+            throw new GeneralException(ErrorStatus.OAUTH_USER_INFO_FAILED);
         } catch (Exception e) {
             log.error("Error parsing Naver user info: {}", e.getMessage());
-            throw new RuntimeException("Error parsing Naver user info", e);
+            throw new GeneralException(ErrorStatus.OAUTH_USER_INFO_FAILED);
         }
     }
 }

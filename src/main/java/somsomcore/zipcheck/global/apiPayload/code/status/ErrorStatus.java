@@ -24,6 +24,10 @@ public enum ErrorStatus implements BaseErrorCode {
     TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "AUTH4001", "유효하지 않은 토큰입니다."),
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4002", "만료된 토큰입니다."),
     TOKEN_USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH4003", "토큰에 해당하는 사용자를 찾을 수 없습니다."),
+    REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "AUTH4004", "유효하지 않은 리프레시 토큰입니다."),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH4005", "리프레시 토큰을 찾을 수 없습니다."),
+    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4006", "만료된 리프레시 토큰입니다."),
+    OAUTH_USER_INFO_FAILED(HttpStatus.BAD_REQUEST, "AUTH4007", "소셜 사용자 정보 조회에 실패했습니다."),
 
     // 주소
     ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "ADDRESS4000", "입력하신 주소를 찾을 수 없습니다. 도로명/지번과 상세주소를 다시 확인해 주세요."),
