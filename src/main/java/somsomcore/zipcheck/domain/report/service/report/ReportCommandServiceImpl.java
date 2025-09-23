@@ -93,6 +93,11 @@ public class ReportCommandServiceImpl implements ReportCommandService {
                     }
                 });
 
+        // DB에서 가져온 user와 address 정보로 이미 신고한 내역이 있는지 확인
+        if (reportRepository.existsByUserAndAddress(user, address)) {
+            throw new ReportHandler(ErrorStatus.REPORT_ALREADY_EXISTS);
+        }
+
         // 파일 업데이트 함수 호출(fileKey 생성)
         String fileKey = s3Service.uploadPdf(file);
 
@@ -124,10 +129,17 @@ public class ReportCommandServiceImpl implements ReportCommandService {
         // 파일 삭제
         s3Service.deletePdf(report.getDocumentUrl());
 
+        // 삭제할 신고글과 연결된 주소 엔티티를 미리 가져옴
+        Address address = report.getAddress();
+
         // 신고글 삭제
         reportRepository.delete(report);
-    }
 
+        // 주소 엔티티를 사용하는 신고글이 없다면 주소 엔티티도 삭제
+        if (reportRepository.countByAddress(address) == 0) {
+            addressRepository.delete(address);
+        }
+    }
 
 
     // 회원 검증
