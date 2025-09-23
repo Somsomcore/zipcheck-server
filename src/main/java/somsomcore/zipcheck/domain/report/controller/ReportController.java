@@ -1,13 +1,15 @@
 package somsomcore.zipcheck.domain.report.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import somsomcore.zipcheck.domain.report.dto.report.ReportRequestDTO;
 import somsomcore.zipcheck.domain.report.dto.report.ReportResponseDTO;
 import somsomcore.zipcheck.domain.report.entity.Report;
 import somsomcore.zipcheck.domain.report.service.report.ReportCommandService;
+import somsomcore.zipcheck.domain.report.service.report.ReportQueryService;
 import somsomcore.zipcheck.global.apiPayload.ApiResponse;
 import somsomcore.zipcheck.global.security.CustomUserDetails;
 
@@ -25,6 +28,7 @@ import somsomcore.zipcheck.global.security.CustomUserDetails;
 @RequestMapping("/api/report")
 public class ReportController {
     private final ReportCommandService reportCommandService;
+    private final ReportQueryService reportQueryService;
 
     // 사용자 사기 접수
     @PostMapping(
@@ -62,6 +66,20 @@ public class ReportController {
                                             @RequestParam("reportId") @Valid Long reportId) {
         reportCommandService.deleteReport(userDetails.getUser().getId(), reportId);
         return ApiResponse.onSuccess("신고글 삭제가 완료되었습니다.");
+    }
+
+    // 내 신고글 목록 조회
+    @Operation(summary = "내 신고글 목록 조회", description = "현재 로그인한 사용자가 작성한 신고글 목록을 페이징으로 조회합니다.")
+    @SecurityRequirement(name = "JWT TOKEN")
+    @GetMapping("/my")
+    public ApiResponse<ReportResponseDTO.MyReportsResultDTO> getMyReports(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        ReportResponseDTO.MyReportsResultDTO response = reportQueryService.getMyReports(userDetails.getUser().getId(), pageable);
+        return ApiResponse.onSuccess(response);
     }
 
     /** Swagger에서 멀티파트 각 파트를 정의하기 위한 스키마 */
