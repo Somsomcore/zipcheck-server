@@ -15,6 +15,8 @@ import somsomcore.zipcheck.domain.auth.repository.RefreshTokenRepository;
 import somsomcore.zipcheck.domain.user.entity.User;
 import somsomcore.zipcheck.domain.user.entity.enums.Role;
 import somsomcore.zipcheck.domain.user.repository.UserRepository;
+import somsomcore.zipcheck.global.apiPayload.code.status.ErrorStatus;
+import somsomcore.zipcheck.global.apiPayload.exception.GeneralException;
 import somsomcore.zipcheck.global.jwt.JwtUtil;
 
 import java.time.LocalDateTime;
@@ -80,19 +82,19 @@ public class AuthService {
         String refreshToken = request.getRefreshToken();
 
         if (!jwtUtil.validateToken(refreshToken)) {
-            throw new RuntimeException("유효하지 않은 리프레시 토큰입니다.");
+            throw new GeneralException(ErrorStatus.REFRESH_TOKEN_INVALID);
         }
 
         RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new RuntimeException("리프레시 토큰을 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.REFRESH_TOKEN_NOT_FOUND));
 
         if (storedToken.isExpired()) {
             refreshTokenRepository.delete(storedToken);
-            throw new RuntimeException("만료된 리프레시 토큰입니다.");
+            throw new GeneralException(ErrorStatus.REFRESH_TOKEN_EXPIRED);
         }
 
         User user = userRepository.findById(storedToken.getUserId())
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         String newAccessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail());
         String newRefreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getEmail());

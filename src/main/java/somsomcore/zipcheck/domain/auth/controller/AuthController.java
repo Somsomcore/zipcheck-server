@@ -1,7 +1,6 @@
 package somsomcore.zipcheck.domain.auth.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +14,6 @@ import somsomcore.zipcheck.global.apiPayload.ApiResponse;
 import somsomcore.zipcheck.global.security.CustomUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-@Tag(name = "인증")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor

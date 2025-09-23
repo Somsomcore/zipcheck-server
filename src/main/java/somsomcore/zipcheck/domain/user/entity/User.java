@@ -44,5 +44,9 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private boolean isVerified;
 
+    // 프로필 이미지 URL
+    @Column
+    private String profileUrl;
+
 
 }
