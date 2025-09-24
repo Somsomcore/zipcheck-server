@@ -68,6 +68,18 @@ public class ReportController {
         return ApiResponse.onSuccess("신고글 삭제가 완료되었습니다.");
     }
 
+    // 위도/경도 기반 신고글 주소 목록 조회
+    @Operation(summary = "주변 신고 위치 목록 조회 API (지도에 핀 표시용)", description = "위도/경도를 기반으로 반경 안에 있는 신고글의 위치 목록을 조회합니다.(지도에 핀 표시용)")
+    @GetMapping("/addrList")
+    public ApiResponse<ReportResponseDTO.ReportAddrListResultDTO> getReportAddrList(
+            @RequestParam(value = "lat") double lat,
+            @RequestParam(value = "lng") double lng,
+            @RequestParam(value = "radiusMeters") int radiusMeters) {
+
+        ReportResponseDTO.ReportAddrListResultDTO response = reportQueryService.getReportAddrList(lat, lng, radiusMeters);
+        return ApiResponse.onSuccess(response);
+    }
+
     // 내 신고글 목록 조회
     @Operation(summary = "내 신고글 목록 조회", description = "현재 로그인한 사용자가 작성한 신고글 목록을 페이징으로 조회합니다.")
     @SecurityRequirement(name = "JWT TOKEN")

@@ -49,4 +49,25 @@ public class ReportResponseDTO {
         private String createdAt;
     }
 
+    // 주변 신고 위치 목록
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReportAddrListResultDTO {
+        private List<ReportAddrDTO> locations;
+    }
+
+    // 주변 신고 위치
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReportAddrDTO {
+        private double latitude;
+        private double longitude;
+        private String address;
+        private int reportCount;
+    }
+
 }

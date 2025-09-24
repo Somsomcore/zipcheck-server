@@ -5,13 +5,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import somsomcore.zipcheck.domain.address.repository.AddressRepository;
 import somsomcore.zipcheck.domain.report.dto.report.ReportResponseDTO;
 import somsomcore.zipcheck.domain.report.entity.Report;
+import somsomcore.zipcheck.domain.report.repository.ReportAddressCount;
 import somsomcore.zipcheck.domain.report.repository.report.ReportRepository;
 
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +22,7 @@ import java.util.List;
 public class ReportQueryService {
 
     private final ReportRepository reportRepository;
+    private final AddressRepository addressRepository;
 
     public ReportResponseDTO.MyReportsResultDTO getMyReports(Long userId, Pageable pageable) {
         Page<Report> reportPage = reportRepository.findByUserIdWithDetails(userId, pageable);
@@ -49,5 +53,21 @@ public class ReportQueryService {
                 .contractedAt(dateFormat.format(report.getContractedAt()))
                 .createdAt(report.getCreatedAt().format(dateTimeFormat))
                 .build();
+    }
+
+    public ReportResponseDTO.ReportAddrListResultDTO getReportAddrList(double lat, double lng, int radiusMeters) {
+        // DB에서 모든 계산이 완료된 결과 목록을 한번에 가져옴
+        List<ReportAddressCount> results = addressRepository.findAddressesInRadiusWithReportCount(lat, lng, radiusMeters);
+
+        List<ReportResponseDTO.ReportAddrDTO> locations = results.stream()
+                .map(result -> ReportResponseDTO.ReportAddrDTO.builder()
+                        .latitude(result.getLatitude())
+                        .longitude(result.getLongitude())
+                        .address(result.getAddress())
+                        .reportCount(result.getReportCount())
+                        .build())
+                .collect(Collectors.toList());
+
+        return new ReportResponseDTO.ReportAddrListResultDTO(locations);
     }
 }

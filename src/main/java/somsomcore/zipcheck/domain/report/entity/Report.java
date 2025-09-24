@@ -57,12 +57,12 @@ public class Report extends BaseEntity {
     private Address address;
 
     // 계약 형태
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contractType_id")
     private ContractType contractType;
 
     // 사기 분류
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "classification_id")
     private Classification classification;
 
