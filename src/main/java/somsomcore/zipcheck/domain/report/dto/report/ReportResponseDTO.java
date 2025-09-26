@@ -130,4 +130,15 @@ public class ReportResponseDTO {
         private RegistrationStatus isRegistration;
         private LocalDateTime createdAt;
     }
+
+    // 사기 등록 상태 변경(관리자-거절/수락)
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ChageStatusOfReportDTO {
+        private Long reportId;     // 변경된 신고글 ID
+        private RegistrationStatus registrationStatus; // 신고글 관리자 등록 허가 상태
+        private LocalDateTime updatedAt;  // 수정 일자
+    }
 }

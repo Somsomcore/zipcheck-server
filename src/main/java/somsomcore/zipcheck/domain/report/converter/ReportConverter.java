@@ -78,4 +78,13 @@ public class ReportConverter {
                 .isLast(reportPage.isLast())
                 .build();
     }
+
+    // 사기 등록 상태 변경(관리자-거절/수락)
+    public static ReportResponseDTO.ChageStatusOfReportDTO toChangeStatusOfReportDTO(Report report) {
+        return ReportResponseDTO.ChageStatusOfReportDTO.builder()
+                .reportId(report.getId())
+                .registrationStatus(report.getRegistrationStatus())
+                .updatedAt(report.getUpdatedAt())
+                .build();
+    }
 }

@@ -43,6 +43,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // 신고글
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT4000", "신고글을 찾을 수 없습니다."),
     REPORT_ALREADY_EXISTS(HttpStatus.CONFLICT, "REPORT4001", "동일한 주소는 중복하여 신고할 수 없습니다. 회원님의 신고 내역을 다시 확인해 주세요."),
+    REPORT_NOT_PENDING(HttpStatus.BAD_REQUEST, "REPORT4002", "변경할 수 있는 상태가 아닙니다. (대기중인 신고글만 변경 가능)"),
+    INVALID_STATUS_CHANGE(HttpStatus.BAD_REQUEST, "REPORT4003", "유효하지 않은 상태 값입니다. (수락/거절만 가능)"),
+    REJECT_REASON_NOT_FOUND(HttpStatus.BAD_REQUEST, "REPORT4004", "거절 사유를 입력해주세요."),
 
     // 파일(NCP-S3)
     FILE_EMPTY(HttpStatus.BAD_REQUEST, "FILE4000", "업로드할 파일이 비어있습니다."),

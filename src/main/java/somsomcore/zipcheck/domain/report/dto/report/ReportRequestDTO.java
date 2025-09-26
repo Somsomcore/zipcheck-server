@@ -1,9 +1,12 @@
 package somsomcore.zipcheck.domain.report.dto.report;
 
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+
 
 public class ReportRequestDTO {
 
@@ -20,4 +23,14 @@ public class ReportRequestDTO {
         private String content;  // 피해 내용
     }
 
+    // 사기 등록 상태 변경(관리자-거절/수락)
+    @Getter
+    @Setter
+    public static class ChangeStatusRequestDTO {
+        @NotNull(message = "상태 값은 필수입니다.")
+        private String changeStatus;
+
+        @Nullable
+        private String rejectReason;       // status가 REJECTED일 경우 필수
+    }
 }

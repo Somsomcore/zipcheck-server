@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,20 +35,10 @@ public class ReportController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @SecurityRequirement(name = "JWT TOKEN")
     @Operation(
             summary = "사용자 신고 접수 API",
-            description = "사용자가 신고글을 접수합니다.",
-            requestBody = @RequestBody(
-                    required = true,
-                    content = @Content(
-                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                            schema = @Schema(implementation = ReportUploadSchema.class),
-                            encoding = {
-                                    @Encoding(name = "request", contentType = MediaType.APPLICATION_JSON_VALUE),
-                                    @Encoding(name = "file",    contentType = MediaType.APPLICATION_PDF_VALUE)
-                            }
-                    )
-            )
+            description = "사용자가 신고글을 접수합니다."
     )
     public ApiResponse<ReportResponseDTO.addReportResultDTO> addReport(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -62,6 +51,7 @@ public class ReportController {
 
     // 사용자 신고글 삭제
     @Operation(summary = "신고글 삭제", description = "사용자가 특정 신고글을 삭제합니다.")
+    @SecurityRequirement(name = "JWT TOKEN")
     @DeleteMapping
     public ApiResponse<String> deleteReport(@AuthenticationPrincipal CustomUserDetails userDetails,
                                             @RequestParam("reportId") @Valid Long reportId) {
@@ -110,6 +100,7 @@ public class ReportController {
 
     // 사기 등록 조회(관리자)
     @Operation(summary = "사기 등록 조회(관리자)", description = "관리자가 사기 접수 목록을 페이징으로 조회합니다.(수락전/수락후)")
+    @SecurityRequirement(name = "JWT TOKEN")
     @GetMapping("/admin")
     public ApiResponse<ReportResponseDTO.ReportsByStatusResultDTO> getPendingReports(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -119,6 +110,18 @@ public class ReportController {
 
         Pageable pageable = PageRequest.of(page, size);
         ReportResponseDTO.ReportsByStatusResultDTO response = reportQueryService.getReportsByStatus(userDetails.getUser().getId(), status, pageable);
+        return ApiResponse.onSuccess(response);
+    }
+
+    // 사기 등록 상태 변경(관리자-거절/수락)
+    @Operation(summary = "사기 등록 상태 변경(관리자-거절/수락)", description = "관리자가 사기 접수 상태를 변경합니다.(수락/거절)")
+    @PatchMapping("/admin/{reportId}")
+    public ApiResponse<ReportResponseDTO.ChageStatusOfReportDTO> changeReportStatus(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long reportId,
+            @Valid @RequestBody ReportRequestDTO.ChangeStatusRequestDTO request) {
+
+        ReportResponseDTO.ChageStatusOfReportDTO response = reportCommandService.changeStatusOfReport(userDetails.getUser().getId(), reportId, request);
         return ApiResponse.onSuccess(response);
     }
 
