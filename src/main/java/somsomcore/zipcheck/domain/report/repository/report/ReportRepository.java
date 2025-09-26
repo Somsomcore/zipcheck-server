@@ -35,6 +35,14 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
            "ORDER BY r.createdAt DESC")
     Page<Report> findByUserIdWithDetails(@Param("userId") Long userId, Pageable pageable);
 
+    /**
+     * 특정 주소 문자열(addr)을 포함하는 신고글 목록을 페이징하여 조회합니다.
+     * @param addr 검색할 주소 문자열
+     * @param pageable 페이징 정보
+     * @return 페이징된 신고글 목록
+     */
+    Page<Report> findAllByAddressAddrContaining(String addr, Pageable pageable);
+
     // Address 객체를 받아 해당 주소를 사용하는 Report의 개수를 반환
     long countByAddress(Address address);
 

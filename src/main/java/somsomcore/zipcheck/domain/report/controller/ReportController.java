@@ -80,6 +80,19 @@ public class ReportController {
         return ApiResponse.onSuccess(response);
     }
 
+    // 특정 주소의 신고글 목록 조회(탐색)
+    @Operation(summary = "특정 주소의 신고글 목록 조회 API (탐색)", description = "특정 위치에 등록되어 있는 신고글 목록을 조회합니다.")
+    @GetMapping
+    public ApiResponse<ReportResponseDTO.ReportListResultDTO> getReportList(
+            @RequestParam(value = "addr") String addr,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        ReportResponseDTO.ReportListResultDTO response = reportQueryService.getReportList(addr, pageable);
+        return ApiResponse.onSuccess(response);
+    }
+
     // 내 신고글 목록 조회
     @Operation(summary = "내 신고글 목록 조회", description = "현재 로그인한 사용자가 작성한 신고글 목록을 페이징으로 조회합니다.")
     @SecurityRequirement(name = "JWT TOKEN")

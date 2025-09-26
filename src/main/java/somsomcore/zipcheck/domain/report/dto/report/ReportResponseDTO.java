@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 public class ReportResponseDTO {
@@ -70,4 +71,32 @@ public class ReportResponseDTO {
         private int reportCount;
     }
 
+    // 주변 신고 위치 목록
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReportListResultDTO {
+        private List<ReportDTO> reports;
+        private Integer totalPages;
+        private Integer currentPage;
+        private Long totalElements;
+        private Boolean isLast;
+    }
+
+    // 주변 신고 위치
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReportDTO {
+        private Long reportId;
+        private String addr;
+        private String addrDetail;
+        private Long classification;
+        private Long contractType;
+        private String content;
+        private Date contractAt;
+        private LocalDateTime createdAt;
+    }
 }
