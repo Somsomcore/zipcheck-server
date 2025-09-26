@@ -47,4 +47,35 @@ public class ReportConverter {
                 .isLast(reportPage.isLast())
                 .build();
     }
+
+    // 사기 등록 조회(관리자)
+    public static ReportResponseDTO.ReportByStatus toRegistrationStatusReportDTO(Report report) {
+
+        return ReportResponseDTO.ReportByStatus.builder()
+                .reportId(report.getId())
+                .name(report.getUser().getName())
+                .addr(report.getAddress().getAddr())
+                .addrDetail(report.getAddress().getAddrDetail())
+                .contractType(report.getContractType().getId())
+                .content(report.getContent())
+                .contractAt(report.getContractedAt())
+                .isRegistration(report.getRegistrationStatus())
+                .createdAt(report.getCreatedAt())
+                .build();
+    }
+
+    // 사기 등록 조회(관리자)
+    public static ReportResponseDTO.ReportsByStatusResultDTO toRegistrationStatusReportsResultDTO(Page<Report> reportPage) {
+        List<ReportResponseDTO.ReportByStatus> reportDTOList = reportPage.getContent().stream()
+                .map(ReportConverter::toRegistrationStatusReportDTO)
+                .collect(Collectors.toList());
+
+        return ReportResponseDTO.ReportsByStatusResultDTO.builder()
+                .reports(reportDTOList)
+                .totalPages(reportPage.getTotalPages())
+                .currentPage(reportPage.getNumber())
+                .totalElements(reportPage.getTotalElements())
+                .isLast(reportPage.isLast())
+                .build();
+    }
 }

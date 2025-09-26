@@ -18,6 +18,7 @@ import somsomcore.zipcheck.domain.report.converter.ReportConverter;
 import somsomcore.zipcheck.domain.report.dto.report.ReportRequestDTO;
 import somsomcore.zipcheck.domain.report.dto.report.ReportResponseDTO;
 import somsomcore.zipcheck.domain.report.entity.Report;
+import somsomcore.zipcheck.domain.report.entity.enums.RegistrationStatus;
 import somsomcore.zipcheck.domain.report.service.report.ReportCommandService;
 import somsomcore.zipcheck.domain.report.service.report.ReportQueryService;
 import somsomcore.zipcheck.global.apiPayload.ApiResponse;
@@ -104,6 +105,20 @@ public class ReportController {
 
         Pageable pageable = PageRequest.of(page, size);
         ReportResponseDTO.MyReportsResultDTO response = reportQueryService.getMyReports(userDetails.getUser().getId(), pageable);
+        return ApiResponse.onSuccess(response);
+    }
+
+    // 사기 등록 조회(관리자)
+    @Operation(summary = "사기 등록 조회(관리자)", description = "관리자가 사기 접수 목록을 페이징으로 조회합니다.(수락전/수락후)")
+    @GetMapping("/admin")
+    public ApiResponse<ReportResponseDTO.ReportsByStatusResultDTO> getPendingReports(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(value = "status")RegistrationStatus status,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        ReportResponseDTO.ReportsByStatusResultDTO response = reportQueryService.getReportsByStatus(userDetails.getUser().getId(), status, pageable);
         return ApiResponse.onSuccess(response);
     }
 

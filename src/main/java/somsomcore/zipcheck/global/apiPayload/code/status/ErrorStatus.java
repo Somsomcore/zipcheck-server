@@ -19,6 +19,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 사용자
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER4000", "사용자를 찾을 수 없습니다."),
+    USER_FORBIDDEN(HttpStatus.FORBIDDEN, "AUTH4001", "해당 요청에 대한 권한이 없습니다."),
 
     // JWT 인증
     TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "AUTH4001", "유효하지 않은 토큰입니다."),
