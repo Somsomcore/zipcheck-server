@@ -115,6 +115,7 @@ public class ReportController {
 
     // 사기 등록 상태 변경(관리자-거절/수락)
     @Operation(summary = "사기 등록 상태 변경(관리자-거절/수락)", description = "관리자가 사기 접수 상태를 변경합니다.(수락/거절)")
+    @SecurityRequirement(name = "JWT TOKEN")
     @PatchMapping("/admin/{reportId}")
     public ApiResponse<ReportResponseDTO.ChageStatusOfReportDTO> changeReportStatus(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -122,6 +123,18 @@ public class ReportController {
             @Valid @RequestBody ReportRequestDTO.ChangeStatusRequestDTO request) {
 
         ReportResponseDTO.ChageStatusOfReportDTO response = reportCommandService.changeStatusOfReport(userDetails.getUser().getId(), reportId, request);
+        return ApiResponse.onSuccess(response);
+    }
+
+    // 신고 글 상세보기(관리자)
+    @Operation(summary = "신고 글 상세보기(관리자)", description = "관리자가 접수된 신고글의 상세내용을 조회합니다.")
+    @SecurityRequirement(name = "JWT TOKEN")
+    @GetMapping("/admin/{reportId}")
+    public ApiResponse<ReportResponseDTO.ReportDetailDTO> getReport(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long reportId) {
+
+        ReportResponseDTO.ReportDetailDTO response = reportQueryService.getReport(userDetails.getUser().getId(), reportId);
         return ApiResponse.onSuccess(response);
     }
 

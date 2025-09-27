@@ -16,6 +16,7 @@ import somsomcore.zipcheck.domain.user.entity.User;
 import somsomcore.zipcheck.domain.user.entity.enums.Role;
 import somsomcore.zipcheck.domain.user.repository.UserRepository;
 import somsomcore.zipcheck.global.apiPayload.code.status.ErrorStatus;
+import somsomcore.zipcheck.global.apiPayload.exception.handler.ReportHandler;
 import somsomcore.zipcheck.global.apiPayload.exception.handler.UserHandler;
 
 import java.text.SimpleDateFormat;
@@ -100,5 +101,21 @@ public class ReportQueryService {
         Page<Report> reportPage = reportRepository.findAllByRegistrationStatus(status, pageable);
 
         return ReportConverter.toRegistrationStatusReportsResultDTO(reportPage);
+    }
+
+    // 신고 글 상세보기(관리자)
+    public ReportResponseDTO.ReportDetailDTO getReport(Long userID, Long reportId){
+        User user = userRepository.findById(userID)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 권한 없음 예외 처리
+        if (user.getRole() != Role.ADMIN) {
+            throw new UserHandler(ErrorStatus.USER_FORBIDDEN);
+        }
+
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new ReportHandler(ErrorStatus.REPORT_NOT_FOUND));
+
+        return ReportConverter.toReportDetailDTO(report);
     }
 }

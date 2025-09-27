@@ -87,4 +87,22 @@ public class ReportConverter {
                 .updatedAt(report.getUpdatedAt())
                 .build();
     }
+
+    // 신고 글 상세보기(관리자)
+    public static ReportResponseDTO.ReportDetailDTO toReportDetailDTO(Report report) {
+        return ReportResponseDTO.ReportDetailDTO.builder()
+                .reportId(report.getId())
+                .name(report.getUser().getName())
+                .addr(report.getAddress().getAddr())
+                .addrDetail(report.getAddress().getAddrDetail())
+                .classification(report.getClassification().getId())
+                .contractType(report.getContractType().getId())
+                .content(report.getContent())
+                .document_key(report.getDocumentUrl())
+                .isRegistration(report.getRegistrationStatus())
+                .recognitionAt(report.getRecognitionAt())
+                .contractAt(report.getContractedAt())
+                .createdAt(report.getCreatedAt())
+                .build();
+    }
 }

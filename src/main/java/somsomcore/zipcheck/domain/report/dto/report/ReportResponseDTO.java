@@ -141,4 +141,25 @@ public class ReportResponseDTO {
         private RegistrationStatus registrationStatus; // 신고글 관리자 등록 허가 상태
         private LocalDateTime updatedAt;  // 수정 일자
     }
+
+    // 신고 글 상세보기(관리자)
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReportDetailDTO {
+        private Long reportId;
+        private String name;
+        private String addr;
+        private String addrDetail;
+        private Long classification;
+        private Long contractType;
+        private String content;
+        private String document_key;
+        private RegistrationStatus isRegistration;
+        private Date recognitionAt;
+        private Date contractAt;
+        private LocalDateTime createdAt;
+    }
+
 }
