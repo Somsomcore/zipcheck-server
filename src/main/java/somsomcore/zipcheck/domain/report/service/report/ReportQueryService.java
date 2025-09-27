@@ -9,8 +9,15 @@ import somsomcore.zipcheck.domain.address.repository.AddressRepository;
 import somsomcore.zipcheck.domain.report.converter.ReportConverter;
 import somsomcore.zipcheck.domain.report.dto.report.ReportResponseDTO;
 import somsomcore.zipcheck.domain.report.entity.Report;
+import somsomcore.zipcheck.domain.report.entity.enums.RegistrationStatus;
 import somsomcore.zipcheck.domain.report.repository.ReportAddressCount;
 import somsomcore.zipcheck.domain.report.repository.report.ReportRepository;
+import somsomcore.zipcheck.domain.user.entity.User;
+import somsomcore.zipcheck.domain.user.entity.enums.Role;
+import somsomcore.zipcheck.domain.user.repository.UserRepository;
+import somsomcore.zipcheck.global.apiPayload.code.status.ErrorStatus;
+import somsomcore.zipcheck.global.apiPayload.exception.handler.ReportHandler;
+import somsomcore.zipcheck.global.apiPayload.exception.handler.UserHandler;
 
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
@@ -24,6 +31,7 @@ public class ReportQueryService {
 
     private final ReportRepository reportRepository;
     private final AddressRepository addressRepository;
+    private final UserRepository userRepository;
 
     public ReportResponseDTO.MyReportsResultDTO getMyReports(Long userId, Pageable pageable) {
         Page<Report> reportPage = reportRepository.findByUserIdWithDetails(userId, pageable);
@@ -78,5 +86,36 @@ public class ReportQueryService {
         Page<Report> reportPage = reportRepository.findAllByAddressAddrContaining(addr, pageable);
 
         return ReportConverter.toReportListResultDTO(reportPage);
+    }
+
+    // 사기 등록 조회(관리자)
+    public ReportResponseDTO.ReportsByStatusResultDTO getReportsByStatus(Long userId, RegistrationStatus status, Pageable pageable){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 권한 없음 예외 처리
+        if (user.getRole() != Role.ADMIN) {
+            throw new UserHandler(ErrorStatus.USER_FORBIDDEN);
+        }
+
+        Page<Report> reportPage = reportRepository.findAllByRegistrationStatus(status, pageable);
+
+        return ReportConverter.toRegistrationStatusReportsResultDTO(reportPage);
+    }
+
+    // 신고 글 상세보기(관리자)
+    public ReportResponseDTO.ReportDetailDTO getReport(Long userID, Long reportId){
+        User user = userRepository.findById(userID)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 권한 없음 예외 처리
+        if (user.getRole() != Role.ADMIN) {
+            throw new UserHandler(ErrorStatus.USER_FORBIDDEN);
+        }
+
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new ReportHandler(ErrorStatus.REPORT_NOT_FOUND));
+
+        return ReportConverter.toReportDetailDTO(report);
     }
 }

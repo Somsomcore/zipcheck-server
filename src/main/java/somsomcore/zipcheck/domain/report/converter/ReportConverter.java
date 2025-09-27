@@ -47,4 +47,62 @@ public class ReportConverter {
                 .isLast(reportPage.isLast())
                 .build();
     }
+
+    // 사기 등록 조회(관리자)
+    public static ReportResponseDTO.ReportByStatus toRegistrationStatusReportDTO(Report report) {
+
+        return ReportResponseDTO.ReportByStatus.builder()
+                .reportId(report.getId())
+                .name(report.getUser().getName())
+                .addr(report.getAddress().getAddr())
+                .addrDetail(report.getAddress().getAddrDetail())
+                .contractType(report.getContractType().getId())
+                .content(report.getContent())
+                .contractAt(report.getContractedAt())
+                .isRegistration(report.getRegistrationStatus())
+                .createdAt(report.getCreatedAt())
+                .build();
+    }
+
+    // 사기 등록 조회(관리자)
+    public static ReportResponseDTO.ReportsByStatusResultDTO toRegistrationStatusReportsResultDTO(Page<Report> reportPage) {
+        List<ReportResponseDTO.ReportByStatus> reportDTOList = reportPage.getContent().stream()
+                .map(ReportConverter::toRegistrationStatusReportDTO)
+                .collect(Collectors.toList());
+
+        return ReportResponseDTO.ReportsByStatusResultDTO.builder()
+                .reports(reportDTOList)
+                .totalPages(reportPage.getTotalPages())
+                .currentPage(reportPage.getNumber())
+                .totalElements(reportPage.getTotalElements())
+                .isLast(reportPage.isLast())
+                .build();
+    }
+
+    // 사기 등록 상태 변경(관리자-거절/수락)
+    public static ReportResponseDTO.ChageStatusOfReportDTO toChangeStatusOfReportDTO(Report report) {
+        return ReportResponseDTO.ChageStatusOfReportDTO.builder()
+                .reportId(report.getId())
+                .registrationStatus(report.getRegistrationStatus())
+                .updatedAt(report.getUpdatedAt())
+                .build();
+    }
+
+    // 신고 글 상세보기(관리자)
+    public static ReportResponseDTO.ReportDetailDTO toReportDetailDTO(Report report) {
+        return ReportResponseDTO.ReportDetailDTO.builder()
+                .reportId(report.getId())
+                .name(report.getUser().getName())
+                .addr(report.getAddress().getAddr())
+                .addrDetail(report.getAddress().getAddrDetail())
+                .classification(report.getClassification().getId())
+                .contractType(report.getContractType().getId())
+                .content(report.getContent())
+                .document_key(report.getDocumentUrl())
+                .isRegistration(report.getRegistrationStatus())
+                .recognitionAt(report.getRecognitionAt())
+                .contractAt(report.getContractedAt())
+                .createdAt(report.getCreatedAt())
+                .build();
+    }
 }

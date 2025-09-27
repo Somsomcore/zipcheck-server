@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import somsomcore.zipcheck.domain.report.entity.enums.RegistrationStatus;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -99,4 +100,66 @@ public class ReportResponseDTO {
         private Date contractAt;
         private LocalDateTime createdAt;
     }
+
+    // 사기 등록 조회(관리자) - 접수된 사기 목록
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReportsByStatusResultDTO {
+        private List<ReportByStatus> reports;
+        private Integer totalPages;
+        private Integer currentPage;
+        private Long totalElements;
+        private Boolean isLast;
+    }
+
+    // 사기 등록 조회(관리자) - 접수된 사기
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReportByStatus {
+        private Long reportId;
+        private String name;
+        private String addr;
+        private String addrDetail;
+        private Long contractType;
+        private String content;
+        private Date contractAt;
+        private RegistrationStatus isRegistration;
+        private LocalDateTime createdAt;
+    }
+
+    // 사기 등록 상태 변경(관리자-거절/수락)
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ChageStatusOfReportDTO {
+        private Long reportId;     // 변경된 신고글 ID
+        private RegistrationStatus registrationStatus; // 신고글 관리자 등록 허가 상태
+        private LocalDateTime updatedAt;  // 수정 일자
+    }
+
+    // 신고 글 상세보기(관리자)
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReportDetailDTO {
+        private Long reportId;
+        private String name;
+        private String addr;
+        private String addrDetail;
+        private Long classification;
+        private Long contractType;
+        private String content;
+        private String document_key;
+        private RegistrationStatus isRegistration;
+        private Date recognitionAt;
+        private Date contractAt;
+        private LocalDateTime createdAt;
+    }
+
 }

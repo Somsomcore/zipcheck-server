@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import somsomcore.zipcheck.domain.address.entity.Address;
 import somsomcore.zipcheck.domain.address.repository.AddressRepository;
+import somsomcore.zipcheck.domain.report.converter.ReportConverter;
 import somsomcore.zipcheck.domain.report.dto.report.ReportRequestDTO;
+import somsomcore.zipcheck.domain.report.dto.report.ReportResponseDTO;
 import somsomcore.zipcheck.domain.report.entity.Classification;
 import somsomcore.zipcheck.domain.report.entity.ContractType;
 import somsomcore.zipcheck.domain.report.entity.Report;
@@ -19,6 +21,7 @@ import somsomcore.zipcheck.domain.report.repository.ContractTypeRepository;
 import somsomcore.zipcheck.domain.report.repository.report.ReportRepository;
 import somsomcore.zipcheck.domain.s3.service.S3Service;
 import somsomcore.zipcheck.domain.user.entity.User;
+import somsomcore.zipcheck.domain.user.entity.enums.Role;
 import somsomcore.zipcheck.domain.user.repository.UserRepository;
 import somsomcore.zipcheck.global.apiPayload.code.status.ErrorStatus;
 import somsomcore.zipcheck.global.apiPayload.exception.handler.AddressHandler;
@@ -141,6 +144,47 @@ public class ReportCommandServiceImpl implements ReportCommandService {
         }
     }
 
+
+    // 사기 등록 상태 변경(관리자-거절/수락)
+    @Override
+    @Transactional
+    public ReportResponseDTO.ChageStatusOfReportDTO changeStatusOfReport(Long userId, Long reportId, ReportRequestDTO.ChangeStatusRequestDTO request){
+        // 권한 없음 예외 처리
+        if (verifyUser(userId).getRole() != Role.ADMIN) {
+            throw new UserHandler(ErrorStatus.USER_FORBIDDEN);
+        }
+
+        // 신고글 조회
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new ReportHandler(ErrorStatus.REPORT_NOT_FOUND));
+
+        // 변경하려는 신고글의 상태가 PENDING인지 확인
+        if (report.getRegistrationStatus() != RegistrationStatus.PENDING) {
+            throw new ReportHandler(ErrorStatus.REPORT_NOT_PENDING);
+        }
+
+        String status = request.getChangeStatus().toUpperCase();
+
+        // 변경할 상태가 APPROVED 또는 REJECTED인지 확인
+        if (!status.equals("APPROVED") && !status.equals("REJECTED")) {
+            throw new ReportHandler(ErrorStatus.INVALID_STATUS_CHANGE);
+        }
+
+        RegistrationStatus newStatus = RegistrationStatus.valueOf(status);
+
+        // 상태 변경
+        if (newStatus == RegistrationStatus.REJECTED) {
+            String reason = request.getRejectReason();
+            if (reason == null || reason.isBlank() || reason.equals("string")) {
+                throw new ReportHandler(ErrorStatus.REJECT_REASON_NOT_FOUND);
+            }
+            report.setRejectReason(reason);
+        }
+
+        report.setRegistrationStatus(newStatus);
+
+        return ReportConverter.toChangeStatusOfReportDTO(report);
+    }
 
     // 회원 검증
     User verifyUser(Long userId){

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import somsomcore.zipcheck.domain.address.entity.Address;
 import somsomcore.zipcheck.domain.report.entity.Report;
+import somsomcore.zipcheck.domain.report.entity.enums.RegistrationStatus;
 import somsomcore.zipcheck.domain.user.entity.User;
 
 import java.util.Optional;
@@ -42,6 +43,14 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
      * @return 페이징된 신고글 목록
      */
     Page<Report> findAllByAddressAddrContaining(String addr, Pageable pageable);
+
+    /**
+     * 특정 등록 상태인 가진 신고글 목록을 페이징하여 조회합니다.
+     * @param status 조회할 등록 상태 (예: PENDING)
+     * @param pageable 페이징 정보
+     * @return 페이징된 신고글 목록
+     */
+    Page<Report> findAllByRegistrationStatus(RegistrationStatus status, Pageable pageable);
 
     // Address 객체를 받아 해당 주소를 사용하는 Report의 개수를 반환
     long countByAddress(Address address);
