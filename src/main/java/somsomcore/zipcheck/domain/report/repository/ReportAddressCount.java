@@ -4,5 +4,5 @@ public interface ReportAddressCount {
     Double getLatitude();
     Double getLongitude();
     String getAddress();
-    Integer getReportCount();
+    Long getReportCount();
 }

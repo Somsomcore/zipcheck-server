@@ -69,7 +69,7 @@ public class ReportResponseDTO {
         private double latitude;
         private double longitude;
         private String address;
-        private int reportCount;
+        private Long reportCount;
     }
 
     // 주변 신고 위치 목록

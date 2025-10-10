@@ -2,6 +2,7 @@ package somsomcore.zipcheck.domain.address.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import somsomcore.zipcheck.global.common.BaseEntity;
 
 @Builder
@@ -32,4 +33,8 @@ public class Address extends BaseEntity {
     @Column(nullable = false)
     private Double lng;
 
+    // 누적 횟수
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private long count;
 }

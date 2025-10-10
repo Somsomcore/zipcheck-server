@@ -67,7 +67,7 @@ public class ReportQueryService {
     // 위도/경도 기반 신고글 주소 목록 조회
     public ReportResponseDTO.ReportAddrListResultDTO getReportAddrList(double lat, double lng, int radiusMeters) {
         // DB에서 모든 계산이 완료된 결과 목록을 한번에 가져옴
-        List<ReportAddressCount> results = addressRepository.findAddressesInRadiusWithReportCount(lat, lng, radiusMeters);
+        List<ReportAddressCount> results = addressRepository.findGroupedAddressesInRadius(lat, lng, radiusMeters);
 
         List<ReportResponseDTO.ReportAddrDTO> locations = results.stream()
                 .map(result -> ReportResponseDTO.ReportAddrDTO.builder()
@@ -83,7 +83,7 @@ public class ReportQueryService {
 
     // 특정 주소의 신고글 목록 조회(탐색)
     public ReportResponseDTO.ReportListResultDTO getReportList(String addr, Pageable pageable){
-        Page<Report> reportPage = reportRepository.findAllByAddressAddrContaining(addr, pageable);
+        Page<Report> reportPage = reportRepository.findAllByAddressAddrContainingAndRegistrationStatus(addr, RegistrationStatus.APPROVED, pageable);
 
         return ReportConverter.toReportListResultDTO(reportPage);
     }

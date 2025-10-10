@@ -60,6 +60,10 @@ public class ReportCommandServiceImpl implements ReportCommandService {
         // 주소 처리: DB에 없으면 지오코딩으로 lat/lng 조회 후 저장
         Address address = addressRepository
                 .findByAddrAndAddrDetail(requestDTO.getAddr(), requestDTO.getAddrDetail())
+                .map(existingAddress -> {
+                    existingAddress.setCount(existingAddress.getCount() + 1);
+                    return existingAddress;
+                })
                 .orElseGet(() -> {
                     try {
                         String base = requestDTO.getAddr() == null ? "" : requestDTO.getAddr().trim();
@@ -84,6 +88,7 @@ public class ReportCommandServiceImpl implements ReportCommandService {
                                 .addrDetail(requestDTO.getAddrDetail())
                                 .lat(lat)
                                 .lng(lng)
+                                .count(1L)
                                 .build();
 
                         return addressRepository.save(newAddress);
@@ -138,8 +143,10 @@ public class ReportCommandServiceImpl implements ReportCommandService {
         // 신고글 삭제
         reportRepository.delete(report);
 
+        address.setCount(address.getCount() - 1);
+
         // 주소 엔티티를 사용하는 신고글이 없다면 주소 엔티티도 삭제
-        if (reportRepository.countByAddress(address) == 0) {
+        if (address.getCount() <= 0) {
             addressRepository.delete(address);
         }
     }

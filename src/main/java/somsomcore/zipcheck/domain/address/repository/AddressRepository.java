@@ -16,16 +16,18 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     Optional<Address> findByAddrAndAddrDetail(String addr, String addrDetail);
 
     @Query(value =
-                  "SELECT a.lat as latitude, a.lng as longitude, a.addr as address, " +
-                  // 1번 수정: COUNT(r.report_id) -> COUNT(*)
-                  "COUNT(*) as reportCount " +
-                  "FROM address a " +
-                  // 2번 수정: a.addr_id -> a.id
-                  "JOIN report r ON a.id = r.addr_id " +
-                  "WHERE ST_Distance_Sphere(POINT(:lng, :lat), POINT(a.lng, a.lat)) <= :radiusMeters " +
-                  "GROUP BY a.id", // GROUP BY 기준도 a.addr_id에서 a.id로 변경해주는 것이 더 명확합니다.
-          nativeQuery = true)
-    List<ReportAddressCount> findAddressesInRadiusWithReportCount(
+            "SELECT " +
+                    "    ANY_VALUE(a.lat) as latitude, " + // 그룹 내 임의의 lat 값 선택
+                    "    ANY_VALUE(a.lng) as longitude, " +// 그룹 내 임의의 lng 값 선택
+                    "    a.addr as address, " +
+                    "    COUNT(r.id) as reportCount " +  // count 값을 합산
+                    "FROM address a " +
+                    "JOIN report r ON a.id = r.addr_id " +
+                    "WHERE ST_Distance_Sphere(POINT(:lng, :lat), POINT(a.lng, a.lat)) <= :radiusMeters " +
+                    "AND r.registration_status = 'APPROVED' " +
+                    "GROUP BY a.addr", // 기본 주소(addr)를 기준으로 그룹화
+            nativeQuery = true)
+    List<ReportAddressCount> findGroupedAddressesInRadius(
             @Param("lat") double lat,
             @Param("lng") double lng,
             @Param("radiusMeters") int radiusMeters);
