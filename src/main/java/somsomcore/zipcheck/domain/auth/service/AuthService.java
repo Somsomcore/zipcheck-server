@@ -4,12 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import somsomcore.zipcheck.domain.auth.dto.AuthResponseDto;
-import somsomcore.zipcheck.domain.auth.dto.SocialLoginRequestDto;
-import somsomcore.zipcheck.domain.auth.dto.SocialUserInfoDto;
-import somsomcore.zipcheck.domain.auth.dto.TestTokenRequestDto;
-import somsomcore.zipcheck.domain.auth.dto.TokenRefreshRequestDto;
-import somsomcore.zipcheck.domain.auth.dto.TokenRefreshResponseDto;
+import somsomcore.zipcheck.domain.auth.dto.*;
 import somsomcore.zipcheck.domain.auth.entity.RefreshToken;
 import somsomcore.zipcheck.domain.auth.repository.RefreshTokenRepository;
 import somsomcore.zipcheck.domain.user.entity.User;
@@ -18,6 +13,8 @@ import somsomcore.zipcheck.domain.user.repository.UserRepository;
 import somsomcore.zipcheck.global.apiPayload.code.status.ErrorStatus;
 import somsomcore.zipcheck.global.apiPayload.exception.GeneralException;
 import somsomcore.zipcheck.global.jwt.JwtUtil;
+import somsomcore.zipcheck.global.util.SmsUtil;
+import somsomcore.zipcheck.global.util.ValidationUtil;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -32,6 +29,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtil jwtUtil;
+	private final ValidationUtil validationUtil;
+	private final SmsUtil smsUtil;
 
     public AuthResponseDto socialLogin(SocialLoginRequestDto request) {
         SocialUserInfoDto socialUserInfo = oAuthService.getSocialUserInfo(request.getAccessToken(), request.getProvider());
@@ -69,7 +68,7 @@ public class AuthService {
                 .oauthType(socialUserInfo.getProvider())
                 .role(Role.MEMBER)
                 .phone("")
-                .isVerified(true)
+                .isVerified(false)
                 .build();
 
         User savedUser = userRepository.save(newUser);
@@ -147,4 +146,40 @@ public class AuthService {
                         .build())
                 .build();
     }
+	
+	public void sendValidationMessage(Long userId, ValidationMessageRequestDto request) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+		
+		if (!request.getPhone().matches("^010(-\\d{4}-\\d{4}|\\d{8})$")) {
+			throw new GeneralException(ErrorStatus.INVALID_PHONE_NUMBER);
+		}
+		
+		String verificationCode = validationUtil.createCode();
+		user.updatePhoneValidation(verificationCode, LocalDateTime.now().plusMinutes(10));
+		userRepository.save(user);
+		
+		smsUtil.sendOne(request.getPhone(), verificationCode);
+	}
+	
+	public void validateUserPhone(Long userId, ValidatePhoneRequestDto request) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+		String userVerificationCode = user.getPhoneValidationCode();
+		
+		if (userVerificationCode == null || userVerificationCode.isEmpty()) {
+			throw new GeneralException(ErrorStatus.VERIFICATION_NOT_FOUND);
+		}
+		if(user.getPhoneValidationExpiresAt().isBefore(LocalDateTime.now())) {
+			throw new GeneralException(ErrorStatus.VERIFICATION_EXPIRED);
+		}
+		if(!userVerificationCode.equals(request.getVerificationCode())) {
+			throw new GeneralException(ErrorStatus.VERIFICATION_INVALID);
+		}
+		
+		user.setVerified(true);
+		user.setPhoneValidationCode(null);
+		user.setPhoneValidationExpiresAt(null);
+		userRepository.save(user);
+	}
 }

@@ -66,6 +66,9 @@ dependencies {
 
 	// Google Maps Services (Geocoding/Places API)
 	implementation "com.google.maps:google-maps-services:2.2.0"
+
+    // SMS
+    implementation 'net.nurigo:sdk:4.3.0'
 }
 
 tasks.named('test') {

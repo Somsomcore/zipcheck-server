@@ -29,8 +29,14 @@ public enum ErrorStatus implements BaseErrorCode {
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH4005", "리프레시 토큰을 찾을 수 없습니다."),
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4006", "만료된 리프레시 토큰입니다."),
     OAUTH_USER_INFO_FAILED(HttpStatus.BAD_REQUEST, "AUTH4007", "소셜 사용자 정보 조회에 실패했습니다."),
-
-    // 주소
+	
+	// 전화번호 인증
+	INVALID_PHONE_NUMBER(HttpStatus.BAD_REQUEST, "AUTH4008", "유효하지 않은 전화번호 형식입니다."),
+	VERIFICATION_INVALID(HttpStatus.BAD_REQUEST, "AUTH4009", "유효하지 않은 인증 번호입니다."),
+	VERIFICATION_EXPIRED(HttpStatus.BAD_REQUEST, "AUTH4010", "인증 번호가 만료되었습니다."),
+	VERIFICATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH4011", "인증 번호를 찾을 수 없습니다."),
+	
+	// 주소
     ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "ADDRESS4000", "입력하신 주소를 찾을 수 없습니다. 도로명/지번과 상세주소를 다시 확인해 주세요."),
     GEOCODING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ADDRESS4001", "주소 좌표를 조회하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."),
 
@@ -54,7 +60,7 @@ public enum ErrorStatus implements BaseErrorCode {
     FILE_INVALID_PATH(HttpStatus.BAD_REQUEST, "FILE4003", "허용되지 않은 경로입니다."),
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE5001", "파일 업로드에 실패했습니다."),
     FILE_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE5002", "파일 삭제에 실패했습니다.");
-    
+	
     private final HttpStatus httpStatus;
     private final String code;
     private final String message;

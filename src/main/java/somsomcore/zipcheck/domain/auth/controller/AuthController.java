@@ -4,11 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import somsomcore.zipcheck.domain.auth.dto.AuthResponseDto;
-import somsomcore.zipcheck.domain.auth.dto.SocialLoginRequestDto;
-import somsomcore.zipcheck.domain.auth.dto.TestTokenRequestDto;
-import somsomcore.zipcheck.domain.auth.dto.TokenRefreshRequestDto;
-import somsomcore.zipcheck.domain.auth.dto.TokenRefreshResponseDto;
+import somsomcore.zipcheck.domain.auth.dto.*;
 import somsomcore.zipcheck.domain.auth.service.AuthService;
 import somsomcore.zipcheck.global.apiPayload.ApiResponse;
 import somsomcore.zipcheck.global.security.CustomUserDetails;
@@ -48,4 +44,20 @@ public class AuthController {
         AuthResponseDto response = authService.generateTestToken(request);
         return ApiResponse.onSuccess(response);
     }
+
+	@Operation(summary = "본인 인증 문자 메시지 발송", description = "본인 인증을 위한 문자 메시지를 발송합니다.")
+	@PostMapping("/verification-code")
+	public ApiResponse<String> sendValidationMessage(@Valid @RequestBody ValidationMessageRequestDto request,
+													 @AuthenticationPrincipal CustomUserDetails userDetails) {
+		authService.sendValidationMessage(userDetails.getUser().getId(), request);
+		return ApiResponse.onSuccess("성공적으로 메시지를 전송했습니다.");
+	}
+
+	@Operation(summary = "본인 인증 코드 검증", description = "사용자가 입력한 본인 인증 코드를 검증합니다.")
+	@PostMapping("/verification")
+	public ApiResponse<String> validateUserPhone(@Valid @RequestBody ValidatePhoneRequestDto request,
+												 @AuthenticationPrincipal CustomUserDetails userDetails) {
+		authService.validateUserPhone(userDetails.getUser().getId(), request);
+		return ApiResponse.onSuccess("성공적으로 인증되었습니다.");
+	}
 }
