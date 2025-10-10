@@ -65,3 +65,11 @@ jwt:
 google:
   api:
     key: ${GOOGLE_API_KEY}
+
+solapi:
+  from-number: "01020702282"
+  domain: "https://api.solapi.com"
+
+zipcheck:
+  verification:
+    code-expiry-minutes: 10

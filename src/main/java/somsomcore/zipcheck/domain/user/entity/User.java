@@ -6,6 +6,8 @@ import somsomcore.zipcheck.domain.user.entity.enums.OauthType;
 import somsomcore.zipcheck.domain.user.entity.enums.Role;
 import somsomcore.zipcheck.global.common.BaseEntity;
 
+import java.time.LocalDateTime;
+
 @Builder
 @Getter
 @Setter
@@ -40,6 +42,14 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String phone;
 
+	// 전화번호 인증 코드 (추후 Redis 교체 예정)
+	@Column
+	private String phoneValidationCode;
+	
+	// 전화번호 인증 만료 일자
+	@Column
+	private LocalDateTime phoneValidationExpiresAt;
+
     // 전화번호 인증 여부
     @Column(nullable = false)
     private boolean isVerified;
@@ -48,5 +58,8 @@ public class User extends BaseEntity {
     @Column
     private String profileUrl;
 
-
+	public void updatePhoneValidation(String code, LocalDateTime expiresAt) {
+		this.phoneValidationCode = code;
+		this.phoneValidationExpiresAt = expiresAt;
+	}
 }
