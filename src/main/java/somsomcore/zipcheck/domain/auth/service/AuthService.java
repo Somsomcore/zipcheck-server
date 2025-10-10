@@ -15,6 +15,7 @@ import somsomcore.zipcheck.global.apiPayload.exception.GeneralException;
 import somsomcore.zipcheck.global.jwt.JwtUtil;
 import somsomcore.zipcheck.global.util.SmsUtil;
 import somsomcore.zipcheck.global.util.ValidationUtil;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -24,6 +25,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional
 public class AuthService {
+
+    @Value("${zipcheck.verification.code-expiry-minutes}")
+    private long codeExpiryMinutes;
 
     private final OAuthService oAuthService;
     private final UserRepository userRepository;
@@ -156,7 +160,7 @@ public class AuthService {
 		}
 		
 		String verificationCode = validationUtil.createCode();
-		user.updatePhoneValidation(verificationCode, LocalDateTime.now().plusMinutes(10));
+		user.updatePhoneValidation(verificationCode, LocalDateTime.now().plusMinutes(codeExpiryMinutes));
 		userRepository.save(user);
 		
 		smsUtil.sendOne(request.getPhone(), verificationCode);
