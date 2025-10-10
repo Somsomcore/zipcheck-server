@@ -3,9 +3,12 @@ package somsomcore.zipcheck.domain.report.converter;
 import org.springframework.data.domain.Page;
 import somsomcore.zipcheck.domain.report.dto.report.ReportResponseDTO;
 import somsomcore.zipcheck.domain.report.entity.Report;
+import somsomcore.zipcheck.domain.report.repository.ReportWithAddressCount;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ReportConverter {
@@ -103,6 +106,28 @@ public class ReportConverter {
                 .recognitionAt(report.getRecognitionAt())
                 .contractAt(report.getContractedAt())
                 .createdAt(report.getCreatedAt())
+                .build();
+    }
+
+    // 메인 TOP 5 API
+    public static ReportResponseDTO.TopReportLocationDTO toTopReportLocationDTO(ReportWithAddressCount projection) {
+        return ReportResponseDTO.TopReportLocationDTO.builder()
+                .reportId(projection.getReportId())
+                .addr(projection.getAddr())
+                .addrDetail(projection.getAddrDetail())
+                .classification(projection.getClassificationId())
+                .contractType(projection.getContractTypeId())
+                .count(projection.getCount())
+                .build();
+    }
+
+    public static ReportResponseDTO.Top5ReportsResultDTO toTop5ReportsResultDTO(List<ReportWithAddressCount> projectionList) {
+        List<ReportResponseDTO.TopReportLocationDTO> dtoList = projectionList.stream()
+                .map(ReportConverter::toTopReportLocationDTO)
+                .collect(Collectors.toList());
+
+        return ReportResponseDTO.Top5ReportsResultDTO.builder()
+                .reports(dtoList)
                 .build();
     }
 }
