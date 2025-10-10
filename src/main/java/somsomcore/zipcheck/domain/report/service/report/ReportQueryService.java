@@ -5,13 +5,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import somsomcore.zipcheck.domain.address.entity.Address;
 import somsomcore.zipcheck.domain.address.repository.AddressRepository;
 import somsomcore.zipcheck.domain.report.converter.ReportConverter;
 import somsomcore.zipcheck.domain.report.dto.report.ReportResponseDTO;
 import somsomcore.zipcheck.domain.report.entity.Report;
 import somsomcore.zipcheck.domain.report.entity.enums.RegistrationStatus;
 import somsomcore.zipcheck.domain.report.repository.ReportAddressCount;
+import somsomcore.zipcheck.domain.report.repository.ReportWithAddressCount;
 import somsomcore.zipcheck.domain.report.repository.report.ReportRepository;
+import somsomcore.zipcheck.domain.risk.entity.Risk;
+import somsomcore.zipcheck.domain.risk.repository.RiskRepository;
 import somsomcore.zipcheck.domain.user.entity.User;
 import somsomcore.zipcheck.domain.user.entity.enums.Role;
 import somsomcore.zipcheck.domain.user.repository.UserRepository;
@@ -22,6 +26,7 @@ import somsomcore.zipcheck.global.apiPayload.exception.handler.UserHandler;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +37,8 @@ public class ReportQueryService {
     private final ReportRepository reportRepository;
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
+    private final RiskRepository riskRepository;
+    private static final int NEARBY_RADIUS_METERS = 10000; // 10km
 
     public ReportResponseDTO.MyReportsResultDTO getMyReports(Long userId, Pageable pageable) {
         Page<Report> reportPage = reportRepository.findByUserIdWithDetails(userId, pageable);
@@ -117,5 +124,32 @@ public class ReportQueryService {
                 .orElseThrow(() -> new ReportHandler(ErrorStatus.REPORT_NOT_FOUND));
 
         return ReportConverter.toReportDetailDTO(report);
+    }
+
+    // 메인 TOP 5 API
+    public ReportResponseDTO.Top5ReportsResultDTO getTop5Reports(Long userId) {
+        List<ReportWithAddressCount> top5List;
+
+        if (userId != null) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+            Optional<Risk> latestRiskOpt = riskRepository.findTopByUserOrderByCreatedAtDesc(user);
+
+            if (latestRiskOpt.isPresent()) {
+                Address riskAddress = latestRiskOpt.get().getAddress();
+                top5List = reportRepository.findTop5ReportsByLocation(
+                        riskAddress.getLat(),
+                        riskAddress.getLng(),
+                        NEARBY_RADIUS_METERS
+                );
+            } else {
+                top5List = reportRepository.findTop5ReportsNationwide();
+            }
+        } else {
+            top5List = reportRepository.findTop5ReportsNationwide();
+        }
+
+        return ReportConverter.toTop5ReportsResultDTO(top5List);
     }
 }

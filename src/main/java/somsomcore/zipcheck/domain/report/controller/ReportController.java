@@ -147,4 +147,18 @@ public class ReportController {
         @Schema(type = "string", format = "binary", description = "첨부 파일 (PDF)")
         public MultipartFile file;
     }
+
+    @Operation(summary = "메인 TOP 5 신고 목록 조회 API", description = "가장 많이 신고된 주소 TOP 5 목록을 조회합니다.")
+    @GetMapping("/top5")
+    public ApiResponse<ReportResponseDTO.Top5ReportsResultDTO> getTop5Reports(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Long userId = null;
+        if (userDetails != null) {
+            userId = userDetails.getUser().getId();
+        }
+
+        ReportResponseDTO.Top5ReportsResultDTO response = reportQueryService.getTop5Reports(userId);
+        return ApiResponse.onSuccess(response);
+    }
 }

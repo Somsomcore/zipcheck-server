@@ -9,8 +9,10 @@ import org.springframework.stereotype.Repository;
 import somsomcore.zipcheck.domain.address.entity.Address;
 import somsomcore.zipcheck.domain.report.entity.Report;
 import somsomcore.zipcheck.domain.report.entity.enums.RegistrationStatus;
+import somsomcore.zipcheck.domain.report.repository.ReportWithAddressCount;
 import somsomcore.zipcheck.domain.user.entity.User;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -55,4 +57,44 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
     // User와 Address를 기준으로 Report가 존재하는지 확인
     boolean existsByUserAndAddress(User user, Address address);
+
+    // 전국 기준 Top 5 주소의 최신 신고글 조회
+    @Query(value =
+            "SELECT " +
+                    "    ANY_VALUE(r.id) AS reportId, " +
+                    "    a.addr AS addr, " +
+                    "    a.addr_detail AS addrDetail, " +
+                    "    ANY_VALUE(r.classification_id) AS classificationId, " +
+                    "    ANY_VALUE(r.contract_type_id) AS contractTypeId, " +
+                    "    COUNT(r.id) AS count " +
+                    "FROM report r " +
+                    "JOIN address a ON r.addr_id = a.id " +
+                    "WHERE r.registration_status = 'APPROVED' " +
+                    "GROUP BY a.id " + // 상세 주소 단위로 그룹화
+                    "ORDER BY count DESC, reportId DESC " +
+                    "LIMIT 5", // LIMIT으로 간단하게 Top 5 조회
+            nativeQuery = true)
+    List<ReportWithAddressCount> findTop5ReportsNationwide();
+
+    // 특정 위치 기반 Top 5 주소의 최신 신고글 조회
+    @Query(value =
+            "SELECT " +
+                    "    ANY_VALUE(r.id) AS reportId, " +
+                    "    a.addr AS addr, " +
+                    "    a.addr_detail AS addrDetail, " +
+                    "    ANY_VALUE(r.classification_id) AS classificationId, " +
+                    "    ANY_VALUE(r.contract_type_id) AS contractTypeId, " +
+                    "    COUNT(r.id) AS count " +
+                    "FROM report r " +
+                    "JOIN address a ON r.addr_id = a.id " +
+                    "WHERE r.registration_status = 'APPROVED' " +
+                    "AND ST_Distance_Sphere(POINT(:lng, :lat), POINT(a.lng, a.lat)) <= :radiusMeters " +
+                    "GROUP BY a.id " + // 상세 주소 단위로 그룹화
+                    "ORDER BY count DESC, reportId DESC " +
+                    "LIMIT 5", // LIMIT으로 간단하게 Top 5 조회
+            nativeQuery = true)
+    List<ReportWithAddressCount> findTop5ReportsByLocation(
+            @Param("lat") double lat, @Param("lng") double lng, @Param("radiusMeters") int radiusMeters);
+
+
 }

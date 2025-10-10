@@ -162,4 +162,26 @@ public class ReportResponseDTO {
         private LocalDateTime createdAt;
     }
 
+    // 메인 TOP 5 API 전체 응답 DTO
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Top5ReportsResultDTO {
+        private List<TopReportLocationDTO> reports;
+    }
+
+    // 메인 TOP 5 API 개별 응답 DTO
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TopReportLocationDTO {
+        private Long reportId;
+        private String addr;
+        private String addrDetail;
+        private long classification;
+        private long contractType;
+        private long count; // 해당 주소의 총 신고 횟수
+    }
 }
