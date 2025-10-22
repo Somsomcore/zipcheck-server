@@ -42,14 +42,6 @@ public class Risk extends BaseEntity {
     @Column(nullable = false)
     private Double similarDepositPct;
 
-    // 동거래가 매물 보증금
-    @Column(nullable = false)
-    private Long recentDeposit;
-
-    // 동거래가 매물 대비 퍼센트
-    @Column(nullable = false)
-    private Double recentDepositPct;
-
     // 보증금 평균
     @Column(nullable = false)
     private Long average;

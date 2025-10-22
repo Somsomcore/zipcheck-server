@@ -2,10 +2,10 @@ spring:
   application:
     name: zipcheck
   datasource:
-    url: ${DATASOURCE_URL:jdbc:mysql://localhost:3306/zipcheck?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true}
-    username: ${DATASOURCE_USERNAME:root}
-    password: ${DATASOURCE_PASSWORD:password}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://localhost:3307/zipcheck_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true
+      username: ${DATASOURCE_USERNAME}
+      password: ${DATASOURCE_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
   sql:
     init:
       mode: never
@@ -64,7 +64,7 @@ jwt:
   refresh-token-expiration: 604800000
 google:
   api:
-    key=:${GOOGLE_API_KEY}
+    key: ${GOOGLE_API_KEY}
 solapi:
   from-number: "01020702282"
   domain: "https://api.solapi.com"
