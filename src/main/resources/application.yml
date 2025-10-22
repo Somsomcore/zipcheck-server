@@ -2,7 +2,7 @@ spring:
   application:
     name: zipcheck
   datasource:
-      url: jdbc:mysql://localhost:3307/zipcheck_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true
+      url: ${DATASOURCE_URL}
       username: ${DATASOURCE_USERNAME}
       password: ${DATASOURCE_PASSWORD}
       driver-class-name: com.mysql.cj.jdbc.Driver
