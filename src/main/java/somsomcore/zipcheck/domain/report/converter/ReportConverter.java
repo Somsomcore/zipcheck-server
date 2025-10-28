@@ -6,6 +6,7 @@ import somsomcore.zipcheck.domain.report.entity.Report;
 import somsomcore.zipcheck.domain.report.repository.ReportWithAddressCount;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -111,11 +112,18 @@ public class ReportConverter {
 
     // 메인 TOP 5 API
     public static ReportResponseDTO.TopReportLocationDTO toTopReportLocationDTO(ReportWithAddressCount projection) {
+        List<ReportResponseDTO.ClassificationIdDto> classificationIdDtos =
+                (projection.getClassificationIds() == null || projection.getClassificationIds().isEmpty())
+                        ? Collections.emptyList()
+                        : Arrays.stream(projection.getClassificationIds().split(",")) // 콤마로 분리
+                        .map(Long::parseLong) // Long 타입으로 변환
+                        .map(id -> ReportResponseDTO.ClassificationIdDto.builder().classification(id).build()) // DTO 생성
+                        .collect(Collectors.toList());
+
         return ReportResponseDTO.TopReportLocationDTO.builder()
-                .reportId(projection.getReportId())
                 .addr(projection.getAddr())
                 .addrDetail(projection.getAddrDetail())
-                .classification(projection.getClassificationId())
+                .classifications(classificationIdDtos)
                 .contractType(projection.getContractTypeId())
                 .count(projection.getCount())
                 .build();

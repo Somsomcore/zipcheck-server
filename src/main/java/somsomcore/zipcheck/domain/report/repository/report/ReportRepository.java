@@ -61,17 +61,16 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     // 전국 기준 Top 5 주소의 최신 신고글 조회
     @Query(value =
             "SELECT " +
-                    "    ANY_VALUE(r.id) AS reportId, " +
                     "    a.addr AS addr, " +
                     "    a.addr_detail AS addrDetail, " +
-                    "    ANY_VALUE(r.classification_id) AS classificationId, " +
+                    "    GROUP_CONCAT(DISTINCT r.classification_id SEPARATOR ',') AS classificationIds, " +
                     "    ANY_VALUE(r.contract_type_id) AS contractTypeId, " +
                     "    COUNT(r.id) AS count " +
                     "FROM report r " +
                     "JOIN address a ON r.addr_id = a.id " +
                     "WHERE r.registration_status = 'APPROVED' " +
                     "GROUP BY a.id " + // 상세 주소 단위로 그룹화
-                    "ORDER BY count DESC, reportId DESC " +
+                    "ORDER BY count DESC " +
                     "LIMIT 5", // LIMIT으로 간단하게 Top 5 조회
             nativeQuery = true)
     List<ReportWithAddressCount> findTop5ReportsNationwide();
@@ -79,10 +78,9 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     // 특정 위치 기반 Top 5 주소의 최신 신고글 조회
     @Query(value =
             "SELECT " +
-                    "    ANY_VALUE(r.id) AS reportId, " +
                     "    a.addr AS addr, " +
                     "    a.addr_detail AS addrDetail, " +
-                    "    ANY_VALUE(r.classification_id) AS classificationId, " +
+                    "    GROUP_CONCAT(DISTINCT r.classification_id SEPARATOR ',') AS classificationIds, " +
                     "    ANY_VALUE(r.contract_type_id) AS contractTypeId, " +
                     "    COUNT(r.id) AS count " +
                     "FROM report r " +
@@ -90,7 +88,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
                     "WHERE r.registration_status = 'APPROVED' " +
                     "AND ST_Distance_Sphere(POINT(:lng, :lat), POINT(a.lng, a.lat)) <= :radiusMeters " +
                     "GROUP BY a.id " + // 상세 주소 단위로 그룹화
-                    "ORDER BY count DESC, reportId DESC " +
+                    "ORDER BY count DESC " +
                     "LIMIT 5", // LIMIT으로 간단하게 Top 5 조회
             nativeQuery = true)
     List<ReportWithAddressCount> findTop5ReportsByLocation(
