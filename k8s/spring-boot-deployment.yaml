@@ -76,6 +76,12 @@ spec:
                 secretKeyRef:
                   name: zipcheck-secrets
                   key: DATASOURCE_PASSWORD
+            - name: DATASOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: zipcheck-secrets
+                  key: DATASOURCE_URL
+
 
 ---
 apiVersion: v1
