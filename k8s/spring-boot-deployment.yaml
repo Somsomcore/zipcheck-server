@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: zipcheck-app
-          image: contest76-reg.kr.ncr.ntruss.com/zipcheck-server:latest
+          image: contest76-reg.kr.ncr.ntruss.com/contest76-reg.kr.ncr.ntruss.com/zipcheck-server:latest
           ports:
             - containerPort: 8080
           env:
