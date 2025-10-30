@@ -59,6 +59,10 @@ public class AuthService {
     }
 
     private User findOrCreateUser(SocialUserInfoDto socialUserInfo) {
+        if (socialUserInfo.getEmail() == null || socialUserInfo.getEmail().isBlank()) {
+            throw new GeneralException(ErrorStatus.OAUTH_EMAIL_REQUIRED);
+        }
+
         Optional<User> existingUser = userRepository.findByEmailAndOauthType(
                 socialUserInfo.getEmail(), socialUserInfo.getProvider());
 

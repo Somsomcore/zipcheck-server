@@ -30,7 +30,7 @@ public class User extends BaseEntity {
     private Role role;
 
     // 이메일
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     // 소셜 로그인 타입
