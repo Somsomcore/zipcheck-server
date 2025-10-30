@@ -53,11 +53,16 @@ public class AuthService {
                         .id(user.getId())
                         .name(user.getName())
                         .email(user.getEmail())
+						.role(user.getRole())
                         .build())
                 .build();
     }
 
     private User findOrCreateUser(SocialUserInfoDto socialUserInfo) {
+        if (socialUserInfo.getEmail() == null || socialUserInfo.getEmail().isBlank()) {
+            throw new GeneralException(ErrorStatus.OAUTH_EMAIL_REQUIRED);
+        }
+
         Optional<User> existingUser = userRepository.findByEmailAndOauthType(
                 socialUserInfo.getEmail(), socialUserInfo.getProvider());
 
@@ -147,6 +152,7 @@ public class AuthService {
                         .id(request.getUserId())
                         .name("테스트 사용자")
                         .email(request.getEmail())
+						.role(Role.MEMBER)
                         .build())
                 .build();
     }

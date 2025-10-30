@@ -44,9 +44,11 @@ public class ReportResponseDTO {
     @AllArgsConstructor
     public static class ReportSummaryDTO {
         private Long id;
-        private String address;
+        private String addr;
+        private String addrDetail;
         private String content;
         private String contractType;
+        private String classification;
         private String contractedAt;
         private String createdAt;
     }
@@ -177,11 +179,19 @@ public class ReportResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class TopReportLocationDTO {
-        private Long reportId;
         private String addr;
         private String addrDetail;
-        private long classification;
+        private List<ClassificationIdDto> classifications;
         private long contractType;
         private long count; // 해당 주소의 총 신고 횟수
+    }
+
+    // 메인 TOP 5 API 사기 분류 DTO
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ClassificationIdDto {
+        private long classification;
     }
 }

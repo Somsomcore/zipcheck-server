@@ -52,7 +52,11 @@ public enum ErrorStatus implements BaseErrorCode {
     REPORT_NOT_PENDING(HttpStatus.BAD_REQUEST, "REPORT4002", "변경할 수 있는 상태가 아닙니다. (대기중인 신고글만 변경 가능)"),
     INVALID_STATUS_CHANGE(HttpStatus.BAD_REQUEST, "REPORT4003", "유효하지 않은 상태 값입니다. (수락/거절만 가능)"),
     REJECT_REASON_NOT_FOUND(HttpStatus.BAD_REQUEST, "REPORT4004", "거절 사유를 입력해주세요."),
+    INVALID_REPORT_STATUS_FILTER(HttpStatus.BAD_REQUEST, "REPORT4005", "유효하지 않은 신고글 상태입니다. (received/registered만 가능)"),
 
+    // OAuth
+    OAUTH_EMAIL_REQUIRED(HttpStatus.BAD_REQUEST, "OAUTH4000", "소셜 로그인에서 이메일 정보를 제공해야 합니다."),
+    
     // 파일(NCP-S3)
     FILE_EMPTY(HttpStatus.BAD_REQUEST, "FILE4000", "업로드할 파일이 비어있습니다."),
     FILE_NOT_PDF(HttpStatus.BAD_REQUEST, "FILE4001", "PDF 형식만 업로드 가능합니다."),

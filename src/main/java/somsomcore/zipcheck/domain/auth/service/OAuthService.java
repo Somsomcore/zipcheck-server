@@ -44,6 +44,10 @@ public class OAuthService {
             String name = jsonNode.path("properties").path("nickname").asText();
             String providerId = jsonNode.path("id").asText();
 
+            if (email == null || email.isBlank()) {
+                throw new GeneralException(ErrorStatus.OAUTH_EMAIL_REQUIRED);
+            }
+
             return SocialUserInfoDto.builder()
                     .email(email)
                     .name(name)
@@ -76,6 +80,10 @@ public class OAuthService {
             String email = responseNode.path("email").asText();
             String name = responseNode.path("name").asText();
             String providerId = responseNode.path("id").asText();
+
+            if (email == null || email.isBlank()) {
+                throw new GeneralException(ErrorStatus.OAUTH_EMAIL_REQUIRED);
+            }
 
             return SocialUserInfoDto.builder()
                     .email(email)

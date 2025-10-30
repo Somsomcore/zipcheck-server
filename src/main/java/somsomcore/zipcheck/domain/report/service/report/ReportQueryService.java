@@ -40,8 +40,8 @@ public class ReportQueryService {
     private final RiskRepository riskRepository;
     private static final int NEARBY_RADIUS_METERS = 10000; // 10km
 
-    public ReportResponseDTO.MyReportsResultDTO getMyReports(Long userId, Pageable pageable) {
-        Page<Report> reportPage = reportRepository.findByUserIdWithDetails(userId, pageable);
+    public ReportResponseDTO.MyReportsResultDTO getMyReports(Long userId, RegistrationStatus status, Pageable pageable) {
+        Page<Report> reportPage = reportRepository.findByUserIdAndStatusWithDetails(userId, status, pageable);
 
         List<ReportResponseDTO.ReportSummaryDTO> reportSummaries = reportPage.getContent()
                 .stream()
@@ -63,9 +63,11 @@ public class ReportQueryService {
 
         return ReportResponseDTO.ReportSummaryDTO.builder()
                 .id(report.getId())
-                .address(report.getAddress().getAddr() + " " + report.getAddress().getAddrDetail())
+                .addr(report.getAddress().getAddr())
+                .addrDetail(report.getAddress().getAddrDetail())
                 .content(report.getContent())
                 .contractType(report.getContractType().getName())
+                .classification(report.getClassification().getName())
                 .contractedAt(dateFormat.format(report.getContractedAt()))
                 .createdAt(report.getCreatedAt().format(dateTimeFormat))
                 .build();

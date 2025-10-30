@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import somsomcore.zipcheck.domain.address.entity.Address;
 import somsomcore.zipcheck.domain.address.repository.AddressRepository;
+import somsomcore.zipcheck.domain.alarm.service.AlarmService;
 import somsomcore.zipcheck.domain.report.converter.ReportConverter;
 import somsomcore.zipcheck.domain.report.dto.report.ReportRequestDTO;
 import somsomcore.zipcheck.domain.report.dto.report.ReportResponseDTO;
@@ -39,6 +40,7 @@ public class ReportCommandServiceImpl implements ReportCommandService {
     private final ClassificationRepository classificationRepository;
     private final S3Service s3Service;
     private final GeoApiContext geoApiContext;
+    private final AlarmService alarmService;
 
     // 사용자 사기 접수
     @Override
@@ -48,14 +50,10 @@ public class ReportCommandServiceImpl implements ReportCommandService {
         User user = verifyUser(memberId);
 
         // 계약 형태
-        ContractType contractType = contractTypeRepository.findById(requestDTO.getContractType()).orElseThrow(() -> {
-            throw new ContractTypeHandler(ErrorStatus.CONTRACTTYPE_NOT_FOUND);
-        });
+        ContractType contractType = contractTypeRepository.findById(requestDTO.getContractType()).orElseThrow(() -> new ContractTypeHandler(ErrorStatus.CONTRACTTYPE_NOT_FOUND));
 
         // 사기 분류
-        Classification classification = classificationRepository.findById(requestDTO.getClassification()).orElseThrow(() -> {
-            throw new ContractTypeHandler(ErrorStatus.CLASSIFICATION_NOT_FOUND);
-        });
+        Classification classification = classificationRepository.findById(requestDTO.getClassification()).orElseThrow(() -> new ContractTypeHandler(ErrorStatus.CLASSIFICATION_NOT_FOUND));
 
         // 주소 처리: DB에 없으면 지오코딩으로 lat/lng 조회 후 저장
         Address address = addressRepository
@@ -121,7 +119,9 @@ public class ReportCommandServiceImpl implements ReportCommandService {
                 .classification(classification)
                 .build();
 
-        return reportRepository.save(newReport);
+        Report savedReport = reportRepository.save(newReport);
+        alarmService.notifyReportSubmitted(savedReport);
+        return savedReport;
     }
 
     // 사용자 신고글 삭제
@@ -130,9 +130,7 @@ public class ReportCommandServiceImpl implements ReportCommandService {
     public void deleteReport(Long userId, Long reportId){
         User user = verifyUser(userId);
 
-        Report report = reportRepository.findByIdAndUserId(reportId, userId).orElseThrow(() -> {
-            throw new ReportHandler(ErrorStatus.REPORT_NOT_FOUND);
-        });
+        Report report = reportRepository.findByIdAndUserId(reportId, userId).orElseThrow(() -> new ReportHandler(ErrorStatus.REPORT_NOT_FOUND));
 
         // 파일 삭제
         s3Service.deletePdf(report.getDocumentUrl());
@@ -190,13 +188,15 @@ public class ReportCommandServiceImpl implements ReportCommandService {
 
         report.setRegistrationStatus(newStatus);
 
+        if (newStatus == RegistrationStatus.REJECTED) {
+            alarmService.notifyReportRejected(report, userId);
+        }
+
         return ReportConverter.toChangeStatusOfReportDTO(report);
     }
 
     // 회원 검증
     User verifyUser(Long userId){
-        return userRepository.findById(userId).orElseThrow(() -> {
-            throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
-        });
+        return userRepository.findById(userId).orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
     }
 }
