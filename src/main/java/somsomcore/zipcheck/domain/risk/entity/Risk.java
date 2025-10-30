@@ -40,21 +40,9 @@ public class Risk extends BaseEntity {
     @Column(nullable = false)
     private Long pra;
 
-    // 동면적 매물 보증금
-    @Column(nullable = false)
-    private Long similarDeposit;
-
-    // 동면적 매물 대비 퍼센트
-    @Column(nullable = false)
-    private Double similarDepositPct;
-
     // 보증금 평균
     @Column(nullable = false)
     private Long average;
-
-    // 보증금 중앙값
-    @Column(nullable = false)
-    private Long median;
 
     // 보증금 최저가
     @Column(nullable = false)
@@ -63,6 +51,10 @@ public class Risk extends BaseEntity {
     // 보증금 최고가
     @Column(nullable = false)
     private Long maximum;
+
+    // 보증금 표준편차
+    @Column(nullable = false)
+    private Long standardDeviation;
 
     // 사용자
     @ManyToOne(fetch = FetchType.LAZY)

@@ -71,3 +71,6 @@ solapi:
 zipcheck:
   verification:
     code-expiry-minutes: 10
+# 공공데이터 API 서비스 키 (URL 인코딩된 값)
+api:
+  serviceKey: ${DATA_API_SECRET}

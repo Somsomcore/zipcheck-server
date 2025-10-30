@@ -26,7 +26,7 @@ public class SecurityConfig {
     };
 
     private static final String[] GET_WHITELIST = {
-            "/api/test/**", "/api/report/addrList", "/api/report", "/api/report/top5"
+            "/api/test/**", "/api/report/addrList", "/api/report", "/api/report/top5", "/api/real-estate"
     };
 
     @Bean

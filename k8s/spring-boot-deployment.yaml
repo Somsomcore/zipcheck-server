@@ -75,7 +75,13 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: zipcheck-secrets
-                  key: DATASOURCE_PASSWORD
+                  key: DATASOURCE_PASSWOR
+            - name: DATA_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: zipcheck-secrets
+                  key: DATA_API_SECRET
+
 
 ---
 apiVersion: v1
