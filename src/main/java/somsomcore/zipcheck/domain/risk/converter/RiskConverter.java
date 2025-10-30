@@ -21,6 +21,8 @@ public class RiskConverter {
                 .average(risk.getAverage())
                 .minimum(risk.getMinimum())
                 .maximum(risk.getMaximum())
+                .maxPra(risk.getMaxPra())
+                .pra(risk.getPra())
                 .depositPct(risk.getDepositPct())
                 .standardDeviation(risk.getStandardDeviation())
                 .riskLevel(risk.getRiskLevel())

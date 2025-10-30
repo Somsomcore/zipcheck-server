@@ -50,6 +50,8 @@ public class RiskResponseDTO {
         Long average;
         Long minimum;
         Long maximum;
+        Long maxPra;
+        Long pra;
         Long standardDeviation;
         LocalDateTime createdAt;
         String address;
