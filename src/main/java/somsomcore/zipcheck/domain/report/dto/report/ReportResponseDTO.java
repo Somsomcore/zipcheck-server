@@ -44,9 +44,11 @@ public class ReportResponseDTO {
     @AllArgsConstructor
     public static class ReportSummaryDTO {
         private Long id;
-        private String address;
+        private String addr;
+        private String addrDetail;
         private String content;
         private String contractType;
+        private String classification;
         private String contractedAt;
         private String createdAt;
     }

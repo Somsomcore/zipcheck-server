@@ -31,12 +31,19 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
      * @param pageable 페이징 정보
      * @return Page<Report>
      */
-    @Query("SELECT r FROM Report r " +
-           "JOIN FETCH r.address a " +
-           "JOIN FETCH r.contractType ct " +
-           "WHERE r.user.id = :userId " +
-           "ORDER BY r.createdAt DESC")
-    Page<Report> findByUserIdWithDetails(@Param("userId") Long userId, Pageable pageable);
+    @Query(value = "SELECT r FROM Report r " +
+                   "JOIN FETCH r.address a " +
+                   "JOIN FETCH r.contractType ct " +
+                   "JOIN FETCH r.classification cl " +
+                   "WHERE r.user.id = :userId " +
+                   "AND r.registrationStatus = :status " +
+                   "ORDER BY r.createdAt DESC",
+           countQuery = "SELECT COUNT(r) FROM Report r " +
+                        "WHERE r.user.id = :userId " +
+                        "AND r.registrationStatus = :status")
+    Page<Report> findByUserIdAndStatusWithDetails(@Param("userId") Long userId,
+                                                  @Param("status") RegistrationStatus status,
+                                                  Pageable pageable);
 
     /**
      * 특정 주소 문자열을 포함하고, 등록 상태가 일치하는 신고글 목록을 페이징하여 조회합니다.

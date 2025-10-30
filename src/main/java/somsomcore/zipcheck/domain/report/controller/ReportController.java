@@ -1,8 +1,7 @@
 package somsomcore.zipcheck.domain.report.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -21,6 +20,8 @@ import somsomcore.zipcheck.domain.report.entity.enums.RegistrationStatus;
 import somsomcore.zipcheck.domain.report.service.report.ReportCommandService;
 import somsomcore.zipcheck.domain.report.service.report.ReportQueryService;
 import somsomcore.zipcheck.global.apiPayload.ApiResponse;
+import somsomcore.zipcheck.global.apiPayload.code.status.ErrorStatus;
+import somsomcore.zipcheck.global.apiPayload.exception.handler.ReportHandler;
 import somsomcore.zipcheck.global.security.CustomUserDetails;
 
 @RestController
@@ -85,16 +86,19 @@ public class ReportController {
     }
 
     // 내 신고글 목록 조회
-    @Operation(summary = "내 신고글 목록 조회", description = "현재 로그인한 사용자가 작성한 신고글 목록을 페이징으로 조회합니다.")
+    @Operation(summary = "내 신고글 목록 조회", description = "현재 로그인한 사용자가 작성한 신고글을 상태(received/registered)별로 페이징 조회합니다.")
     @SecurityRequirement(name = "JWT TOKEN")
-    @GetMapping("/my")
+    @GetMapping("/my/{status}")
     public ApiResponse<ReportResponseDTO.MyReportsResultDTO> getMyReports(
             @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Parameter(description = "received(접수)/registered(등록) 중 하나", example = "received", required = true)
+            @PathVariable("status") String status,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        ReportResponseDTO.MyReportsResultDTO response = reportQueryService.getMyReports(userDetails.getUser().getId(), pageable);
+        RegistrationStatus registrationStatus = resolveRegistrationStatus(status);
+        ReportResponseDTO.MyReportsResultDTO response = reportQueryService.getMyReports(userDetails.getUser().getId(), registrationStatus, pageable);
         return ApiResponse.onSuccess(response);
     }
 
@@ -160,5 +164,14 @@ public class ReportController {
 
         ReportResponseDTO.Top5ReportsResultDTO response = reportQueryService.getTop5Reports(userId);
         return ApiResponse.onSuccess(response);
+    }
+
+    private RegistrationStatus resolveRegistrationStatus(String status) {
+        String normalized = status == null ? "" : status.toLowerCase();
+        return switch (normalized) {
+            case "received" -> RegistrationStatus.PENDING;
+            case "registered" -> RegistrationStatus.APPROVED;
+            default -> throw new ReportHandler(ErrorStatus.INVALID_REPORT_STATUS_FILTER);
+        };
     }
 }
