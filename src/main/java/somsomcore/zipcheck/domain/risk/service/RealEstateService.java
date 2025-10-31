@@ -43,7 +43,10 @@ public class RealEstateService {
         List<String> yearMonths = List.of(
                 today.format(DateTimeFormatter.ofPattern("yyyyMM")),
                 today.minusMonths(1).format(DateTimeFormatter.ofPattern("yyyyMM")),
-                today.minusMonths(2).format(DateTimeFormatter.ofPattern("yyyyMM"))
+                today.minusMonths(2).format(DateTimeFormatter.ofPattern("yyyyMM")),
+                today.minusMonths(3).format(DateTimeFormatter.ofPattern("yyyyMM")),
+                today.minusMonths(4).format(DateTimeFormatter.ofPattern("yyyyMM")),
+                today.minusMonths(5).format(DateTimeFormatter.ofPattern("yyyyMM"))
         );
 
         log.info("Calculating average rent for region: {}, filters: {}", regionCode, filterDto);
@@ -125,7 +128,7 @@ public class RealEstateService {
             if (filterDto.getDeposit() != null && averageRent > 0) {
                 // 공식: ((요청값 - 평균값) / 평균값) * 100
                 double rawPercentDiff = ((filterDto.getDeposit() - averageRent) / averageRent) * 100;
-                
+
                 percentDifference = Math.round(rawPercentDiff * 100.0) / 100.0;
             }
         }
