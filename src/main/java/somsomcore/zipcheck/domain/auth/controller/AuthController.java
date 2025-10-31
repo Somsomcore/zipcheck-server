@@ -17,7 +17,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Operation(summary = "소셜 로그인", description = "카카오 또는 네이버 액세스 토큰과 전화번호(신규 가입 시 필수)를 이용해 로그인/가입을 처리합니다.")
+    @Operation(summary = "소셜 로그인", description = "카카오 또는 네이버 액세스 토큰으로 로그인/가입을 처리합니다. 전화번호는 이후 본인 인증 API를 통해 등록됩니다.")
     @PostMapping
     public ApiResponse<AuthResponseDto> socialLogin(@Valid @RequestBody SocialLoginRequestDto request) {
         AuthResponseDto response = authService.socialLogin(request);
@@ -45,7 +45,7 @@ public class AuthController {
         return ApiResponse.onSuccess(response);
     }
 
-	@Operation(summary = "본인 인증 문자 메시지 발송", description = "본인 인증을 위한 문자 메시지를 발송합니다.")
+	@Operation(summary = "본인 인증 문자 메시지 발송", description = "본인 인증을 위한 문자 메시지를 발송하고 전화번호를 임시로 저장합니다.")
 	@PostMapping("/verification-code")
 	public ApiResponse<String> sendValidationMessage(@Valid @RequestBody ValidationMessageRequestDto request,
 													 @AuthenticationPrincipal CustomUserDetails userDetails) {

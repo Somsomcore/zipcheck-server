@@ -40,7 +40,7 @@ public class AuthService {
     public AuthResponseDto socialLogin(SocialLoginRequestDto request) {
         SocialUserInfoDto socialUserInfo = oAuthService.getSocialUserInfo(request.getAccessToken(), request.getProvider());
 
-        User user = findOrCreateUser(socialUserInfo, request.getPhone());
+        User user = findOrCreateUser(socialUserInfo);
 
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
@@ -60,7 +60,7 @@ public class AuthService {
                 .build();
     }
 
-    private User findOrCreateUser(SocialUserInfoDto socialUserInfo, String phone) {
+    private User findOrCreateUser(SocialUserInfoDto socialUserInfo) {
         String resolvedEmail = resolveEmailForLookup(socialUserInfo);
         Optional<User> existingUser = userRepository.findByEmailAndOauthType(
                 resolvedEmail, socialUserInfo.getProvider());
@@ -78,20 +78,8 @@ public class AuthService {
                 user.setEmail(socialUserInfo.getEmail());
             }
 
-            if (!StringUtils.hasText(user.getPhone()) && StringUtils.hasText(phone)) {
-                ensurePhoneAvailable(phone, user.getId());
-                user.setPhone(phone);
-                user.setVerified(false);
-            }
-
             return userRepository.save(user);
         }
-
-        if (!StringUtils.hasText(phone)) {
-            throw new GeneralException(ErrorStatus.PHONE_REQUIRED);
-        }
-
-        ensurePhoneAvailable(phone, null);
 
         String emailToPersist = resolvedEmail;
         if (!StringUtils.hasText(emailToPersist)) {
@@ -103,7 +91,7 @@ public class AuthService {
                 .email(emailToPersist)
                 .oauthType(socialUserInfo.getProvider())
                 .role(Role.MEMBER)
-                .phone(phone)
+                .phone(null)
                 .isVerified(false)
                 .build();
 

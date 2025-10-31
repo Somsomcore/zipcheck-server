@@ -38,8 +38,8 @@ public class User extends BaseEntity {
     @Column(columnDefinition = "VARCHAR(15) DEFAULT 'KAKAO'")
     private OauthType oauthType;
 
-    // 전화번호
-    @Column(nullable = false, unique = true)
+    // 전화번호 (소셜 로그인 이후 본인인증 단계에서 등록)
+    @Column(unique = true)
     private String phone;
 
 	// 전화번호 인증 코드 (추후 Redis 교체 예정)

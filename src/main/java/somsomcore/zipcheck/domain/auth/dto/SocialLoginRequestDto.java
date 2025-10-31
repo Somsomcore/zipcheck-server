@@ -13,8 +13,6 @@ public class SocialLoginRequestDto {
     @NotNull(message = "OAuth 타입은 필수입니다.")
     private OauthType provider;
 
-    private String phone;
-
     @NotBlank(message = "액세스 토큰은 필수입니다.")
     private String accessToken;
 }
