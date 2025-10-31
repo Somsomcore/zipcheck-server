@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import somsomcore.zipcheck.domain.auth.dto.*;
 import somsomcore.zipcheck.domain.auth.entity.RefreshToken;
 import somsomcore.zipcheck.domain.auth.repository.RefreshTokenRepository;
@@ -39,10 +40,10 @@ public class AuthService {
     public AuthResponseDto socialLogin(SocialLoginRequestDto request) {
         SocialUserInfoDto socialUserInfo = oAuthService.getSocialUserInfo(request.getAccessToken(), request.getProvider());
 
-        User user = findOrCreateUser(socialUserInfo);
+        User user = findOrCreateUser(socialUserInfo, request.getPhone());
 
-        String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getEmail());
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
 
         saveOrUpdateRefreshToken(user.getId(), refreshToken);
 
@@ -53,35 +54,61 @@ public class AuthService {
                         .id(user.getId())
                         .name(user.getName())
                         .email(user.getEmail())
+                        .phone(user.getPhone())
 						.role(user.getRole())
                         .build())
                 .build();
     }
 
-    private User findOrCreateUser(SocialUserInfoDto socialUserInfo) {
-        if (socialUserInfo.getEmail() == null || socialUserInfo.getEmail().isBlank()) {
-            throw new GeneralException(ErrorStatus.OAUTH_EMAIL_REQUIRED);
+    private User findOrCreateUser(SocialUserInfoDto socialUserInfo, String phone) {
+        String resolvedEmail = resolveEmailForLookup(socialUserInfo);
+        Optional<User> existingUser = userRepository.findByEmailAndOauthType(
+                resolvedEmail, socialUserInfo.getProvider());
+
+        if (existingUser.isEmpty() && StringUtils.hasText(socialUserInfo.getEmail())) {
+            String fallbackEmail = generateFallbackEmail(socialUserInfo);
+            existingUser = userRepository.findByEmailAndOauthType(fallbackEmail, socialUserInfo.getProvider());
         }
 
-        Optional<User> existingUser = userRepository.findByEmailAndOauthType(
-                socialUserInfo.getEmail(), socialUserInfo.getProvider());
-
         if (existingUser.isPresent()) {
-            log.info("기존 사용자 로그인: {}", socialUserInfo.getEmail());
-            return existingUser.get();
+            User user = existingUser.get();
+            log.info("기존 사용자 로그인: {}", user.getEmail());
+
+            if (StringUtils.hasText(socialUserInfo.getEmail()) && !socialUserInfo.getEmail().equals(user.getEmail())) {
+                user.setEmail(socialUserInfo.getEmail());
+            }
+
+            if (!StringUtils.hasText(user.getPhone()) && StringUtils.hasText(phone)) {
+                ensurePhoneAvailable(phone, user.getId());
+                user.setPhone(phone);
+                user.setVerified(false);
+            }
+
+            return userRepository.save(user);
+        }
+
+        if (!StringUtils.hasText(phone)) {
+            throw new GeneralException(ErrorStatus.PHONE_REQUIRED);
+        }
+
+        ensurePhoneAvailable(phone, null);
+
+        String emailToPersist = resolvedEmail;
+        if (!StringUtils.hasText(emailToPersist)) {
+            emailToPersist = generateFallbackEmail(socialUserInfo);
         }
 
         User newUser = User.builder()
                 .name(socialUserInfo.getName())
-                .email(socialUserInfo.getEmail())
+                .email(emailToPersist)
                 .oauthType(socialUserInfo.getProvider())
                 .role(Role.MEMBER)
-                .phone("")
+                .phone(phone)
                 .isVerified(false)
                 .build();
 
         User savedUser = userRepository.save(newUser);
-        log.info("새 사용자 생성: {}", socialUserInfo.getEmail());
+        log.info("새 사용자 생성: {}", savedUser.getEmail());
 
         return savedUser;
     }
@@ -104,8 +131,8 @@ public class AuthService {
         User user = userRepository.findById(storedToken.getUserId())
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
-        String newAccessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail());
-        String newRefreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getEmail());
+        String newAccessToken = jwtUtil.generateAccessToken(user);
+        String newRefreshToken = jwtUtil.generateRefreshToken(user);
 
         storedToken.updateToken(newRefreshToken, LocalDateTime.now().plusDays(7));
         refreshTokenRepository.save(storedToken);
@@ -140,23 +167,27 @@ public class AuthService {
     }
 
     public AuthResponseDto generateTestToken(TestTokenRequestDto request) {
-        String accessToken = jwtUtil.generateAccessToken(request.getUserId(), request.getEmail());
-        String refreshToken = jwtUtil.generateRefreshToken(request.getUserId(), request.getEmail());
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
-        saveOrUpdateRefreshToken(request.getUserId(), refreshToken);
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        saveOrUpdateRefreshToken(user.getId(), refreshToken);
 
         return AuthResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .user(AuthResponseDto.UserInfo.builder()
-                        .id(request.getUserId())
-                        .name("테스트 사용자")
-                        .email(request.getEmail())
-						.role(Role.MEMBER)
-                        .build())
-                .build();
-    }
-	
+	                .user(AuthResponseDto.UserInfo.builder()
+	                        .id(user.getId())
+	                        .name("테스트 사용자")
+	                        .email(user.getEmail())
+	                        .phone(user.getPhone())
+						.role(user.getRole())
+	                        .build())
+	                .build();
+	    }
+
 	public void sendValidationMessage(Long userId, ValidationMessageRequestDto request) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
@@ -164,8 +195,12 @@ public class AuthService {
 		if (!request.getPhone().matches("^010(-\\d{4}-\\d{4}|\\d{8})$")) {
 			throw new GeneralException(ErrorStatus.INVALID_PHONE_NUMBER);
 		}
+
+		ensurePhoneAvailable(request.getPhone(), user.getId());
 		
 		String verificationCode = validationUtil.createCode();
+		user.setPhone(request.getPhone());
+		user.setVerified(false);
 		user.updatePhoneValidation(verificationCode, LocalDateTime.now().plusMinutes(codeExpiryMinutes));
 		userRepository.save(user);
 		
@@ -192,4 +227,31 @@ public class AuthService {
 		user.setPhoneValidationExpiresAt(null);
 		userRepository.save(user);
 	}
+
+    private String resolveEmailForLookup(SocialUserInfoDto socialUserInfo) {
+        if (StringUtils.hasText(socialUserInfo.getEmail())) {
+            return socialUserInfo.getEmail();
+        }
+        return generateFallbackEmail(socialUserInfo);
+    }
+
+    private String generateFallbackEmail(SocialUserInfoDto socialUserInfo) {
+        String providerCode = socialUserInfo.getProvider().name().toLowerCase();
+        String providerId = StringUtils.hasText(socialUserInfo.getProviderId())
+                ? socialUserInfo.getProviderId()
+                : String.valueOf(System.currentTimeMillis());
+        return providerCode + "_" + providerId + "@oauth.zipcheck";
+    }
+
+    private void ensurePhoneAvailable(String phone, Long currentUserId) {
+        if (!StringUtils.hasText(phone)) {
+            throw new GeneralException(ErrorStatus.PHONE_REQUIRED);
+        }
+
+        Optional<User> owner = userRepository.findByPhone(phone);
+
+        if (owner.isPresent() && (currentUserId == null || !owner.get().getId().equals(currentUserId))) {
+            throw new GeneralException(ErrorStatus.PHONE_ALREADY_EXISTS);
+        }
+    }
 }

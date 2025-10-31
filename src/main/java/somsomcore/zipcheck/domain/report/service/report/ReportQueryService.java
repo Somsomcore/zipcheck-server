@@ -67,7 +67,8 @@ public class ReportQueryService {
                 .addrDetail(report.getAddress().getAddrDetail())
                 .content(report.getContent())
                 .contractType(report.getContractType().getName())
-                .classification(report.getClassification().getName())
+                .classificationId(report.getClassification().getId())
+                .classificationName(report.getClassification().getName())
                 .contractedAt(dateFormat.format(report.getContractedAt()))
                 .createdAt(report.getCreatedAt().format(dateTimeFormat))
                 .build();

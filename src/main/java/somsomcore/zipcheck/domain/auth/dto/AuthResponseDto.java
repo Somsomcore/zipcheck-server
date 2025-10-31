@@ -24,6 +24,7 @@ public class AuthResponseDto {
         private Long id;
         private String name;
         private String email;
+        private String phone;
 		private Role role;
     }
 }

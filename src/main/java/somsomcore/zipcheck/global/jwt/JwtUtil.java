@@ -5,6 +5,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import somsomcore.zipcheck.domain.user.entity.User;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -26,26 +27,34 @@ public class JwtUtil {
         this.refreshTokenExpiration = refreshTokenExpiration;
     }
 
-    public String generateAccessToken(Long userId, String email) {
-        return generateToken(userId, email, accessTokenExpiration, "access");
+    public String generateAccessToken(User user) {
+        return generateToken(user, accessTokenExpiration, "access");
     }
 
-    public String generateRefreshToken(Long userId, String email) {
-        return generateToken(userId, email, refreshTokenExpiration, "refresh");
+    public String generateRefreshToken(User user) {
+        return generateToken(user, refreshTokenExpiration, "refresh");
     }
 
-    private String generateToken(Long userId, String email, long expiration, String tokenType) {
+    private String generateToken(User user, long expiration, String tokenType) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
 
-        return Jwts.builder()
-                .setSubject(String.valueOf(userId))
-                .claim("email", email)
+        JwtBuilder builder = Jwts.builder()
+                .setSubject(String.valueOf(user.getId()))
                 .claim("tokenType", tokenType)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(key)
-                .compact();
+                .signWith(key);
+
+        if (user.getEmail() != null) {
+            builder.claim("email", user.getEmail());
+        }
+
+        if (user.getPhone() != null) {
+            builder.claim("phone", user.getPhone());
+        }
+
+        return builder.compact();
     }
 
     public Claims extractClaims(String token) {
@@ -63,6 +72,10 @@ public class JwtUtil {
 
     public String extractEmail(String token) {
         return extractClaims(token).get("email", String.class);
+    }
+
+    public String extractPhone(String token) {
+        return extractClaims(token).get("phone", String.class);
     }
 
     public boolean validateToken(String token) {

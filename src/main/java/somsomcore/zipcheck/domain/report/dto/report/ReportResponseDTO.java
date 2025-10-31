@@ -48,7 +48,8 @@ public class ReportResponseDTO {
         private String addrDetail;
         private String content;
         private String contractType;
-        private String classification;
+        private Long classificationId;
+        private String classificationName;
         private String contractedAt;
         private String createdAt;
     }
