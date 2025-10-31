@@ -20,13 +20,11 @@ import somsomcore.zipcheck.domain.risk.repository.RiskRepository;
 import somsomcore.zipcheck.domain.user.entity.User;
 import somsomcore.zipcheck.global.apiPayload.code.status.ErrorStatus;
 import somsomcore.zipcheck.global.apiPayload.exception.handler.AddressHandler;
+import somsomcore.zipcheck.global.config.PolicyProperties;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.DoubleSummaryStatistics;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -37,6 +35,7 @@ public class RealEstateService {
     private final AddressRepository addressRepository;
     private final RiskRepository riskRepository;
     private final GeoApiContext geoApiContext;
+    private final PolicyProperties policyProperties;
 
     @Transactional
     public RiskResponseDTO.RiskDetailDTO analyzeAndSaveRisk(String regionCode, RentFilterRequestDto filterDto, User user) {
@@ -125,14 +124,15 @@ public class RealEstateService {
 
             if (filterDto.getDeposit() != null && averageRent > 0) {
                 // 공식: ((요청값 - 평균값) / 평균값) * 100
-                percentDifference = ((filterDto.getDeposit() - averageRent) / averageRent) * 100;
+                double rawPercentDiff = ((filterDto.getDeposit() - averageRent) / averageRent) * 100;
+                
+                percentDifference = Math.round(rawPercentDiff * 100.0) / 100.0;
             }
         }
 
-        Double riskScore = calculateRiskScore(filterDto.getDeposit(), averageRent, maxRent); // 예시
-        RiskLevel riskLevel = calculateRiskLevel(riskScore); // 예시
-        Long maxPra = 150000000L;
-        Long pra = 50000000L;
+
+        Double riskScore = calculateRiskScore(percentDifference);
+        RiskLevel riskLevel = calculateRiskLevel(riskScore);
 
         double finalAverage = (count == 0) ? 0.0 : averageRent;
         double finalMax = (count == 0) ? 0.0 : maxRent;
@@ -188,6 +188,11 @@ public class RealEstateService {
                     }
                 });
 
+        long userDeposit = filterDto.getDeposit() != null ? filterDto.getDeposit().longValue() : 0L;
+        PolicyProperties.RegionRule rule = findRuleForAddress(filterDto.getAddress());
+        Long pra = getPriorityRepaymentAmount(rule, userDeposit);
+        Long maxPra = rule.getRepaymentAmount();
+
 
         Risk newRisk = Risk.builder()
                 .riskScore(riskScore)
@@ -219,6 +224,7 @@ public class RealEstateService {
         try {
             depositStr = depositStr.trim().replace(",", "");
             double depositValue = Double.parseDouble(depositStr);
+
             return depositValue;
 
         } catch (NumberFormatException e) {
@@ -227,12 +233,99 @@ public class RealEstateService {
         }
 
     }
-    private Double calculateRiskScore(Double userDeposit, double average, double max) {
-        // ... (실제 위험도 계산 로직 구현) ...
-        return 85.5; // 예시 값
+    private Double calculateRiskScore(double percentDifference) {
+
+        double absPercentDifference = Math.abs(percentDifference);
+
+        double riskScore = absPercentDifference * 2.0;
+
+        double finalScore = Math.min(riskScore, 100.0);
+
+
+        return Math.round(finalScore * 100.0) / 100.0;
     }
     private RiskLevel calculateRiskLevel(Double score) {
-        // ... (점수에 따른 위험 레벨 반환 로직 구현) ...
-        return RiskLevel.Critical; // 예시 값
+
+
+        if (score >= 100.0) {
+            return RiskLevel.Critical;
+        }
+
+        else if (score >= 60.0) {
+            return RiskLevel.Danger;
+        }
+
+        else {
+            return RiskLevel.Caution;
+        }
+
     }
+
+    /**
+     * 주소와 보증금을 기준으로 최우선변제액을 반환합니다.
+     * @param rule 판별된 지역 규칙
+     * @param userDeposit 사용자의 보증금
+     * @return 최우선변제액 (대상 아니면 0L)
+     */
+    public long getPriorityRepaymentAmount(PolicyProperties.RegionRule rule, long userDeposit) {
+        if (userDeposit <= rule.getDepositLimit()) {
+            return rule.getRepaymentAmount();
+        } else {
+            return 0L;
+        }
+    }
+
+    /**
+     * 주소 문자열을 파싱하여 올바른 지역 규칙(Rule)을 찾습니다.
+     * @param address "서울 강남구...", "경기 광주시..."
+     * @return 지역에 맞는 RegionRule 객체
+     */
+    private PolicyProperties.RegionRule findRuleForAddress(String address) {
+        Map<String, PolicyProperties.RegionRule> rules = policyProperties.getRepaymentRules();
+
+        if (address == null || address.isBlank()) {
+            return rules.get("OTHER");
+        }
+
+        // 1호: 서울특별시
+        // "서울"은 항상 주소 맨 앞에 오므로 startsWith 사용이 가장 효율적입니다.
+        if (address.startsWith("서울")) {
+            return rules.get("SEOUL");
+        }
+
+        // 2호: 과밀억제권역 (인천, 세종, 용인, 화성, 김포)
+        // "인천", "세종"은 특별시/광역시급이라 startsWith로 검사합니다.
+        if (address.startsWith("인천") || // "인천광역시"
+                address.startsWith("세종")) { // "세종특별자치시"
+            return rules.get("OVERCROWDED");
+        }
+
+        // "경기도 용인시", "경기도 화성시", "경기도 김포시" 등은 contains로 검사합니다.
+        if (address.contains("용인시") ||
+                address.contains("화성시") ||
+                address.contains("김포시")) {
+            return rules.get("OVERCROWDED");
+        }
+
+        // 3호: 광역시 등 (인천 제외, 경기도 광주 포함)
+
+        // "광주시"는 "광주광역시"와 "경기도 광주시"를 모두 포함하며,
+        // 표 기준(3호)으로 둘 다 동일하게 취급하므로 contains("광주시")가 올바른 검사입니다.
+        if (address.contains("안산시") ||
+                address.contains("광주시") || // "광주광역시" OR "경기도 광주시"
+                address.contains("파주시") ||
+                address.contains("이천시") ||
+                address.contains("평택시")) {
+            return rules.get("METROPOLITAN");
+        }
+
+        // 2호(인천), 3호(광주)를 제외한 나머지 광역시(대전, 대구, 울산, 부산)를 검사합니다.
+        if (address.contains("광역시") && !address.startsWith("인천") && !address.startsWith("광주")) {
+            return rules.get("METROPOLITAN");
+        }
+
+        // 4호: 그 밖의 지역
+        return rules.get("OTHER");
+    }
+
 }
