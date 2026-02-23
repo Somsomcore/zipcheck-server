@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    # AWS RDS 엔드포인트로 환경변수 주입
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+  jpa:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: validate # 운영 환경이므로 validate 권장
+        show_sql: false
+
+cloud:
+  aws:
+    region:
+      static: ${AWS_REGION:ap-northeast-2}
+    s3:
+      bucket: ${AWS_S3_BUCKET:prod-zipcheck-bucket}

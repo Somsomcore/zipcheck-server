@@ -2,10 +2,10 @@ spring:
   application:
     name: zipcheck
   datasource:
-      url: ${DATASOURCE_URL}
-      username: ${DATASOURCE_USERNAME}
-      password: ${DATASOURCE_PASSWORD}
-      driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   sql:
     init:
       mode: never
@@ -56,15 +56,14 @@ spring:
 cloud:
   aws:
     credentials:
-      access-key: ${NCP_ACCESS_KEY}
-      secret-key: ${NCP_SECRET_KEY}
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
     stack:
       auto: false
     region:
-      static: kr-standard
+      static: ${AWS_REGION:ap-northeast-2}
     s3:
-      endpoint: https://kr.object.ncloudstorage.com
-      bucket: contest76-bucket
+      bucket: ${AWS_S3_BUCKET:zipcheck-bucket}
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 3600000

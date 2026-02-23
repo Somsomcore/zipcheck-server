@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    # AWS RDS 엔드포인트
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+  jpa:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: update
+        show_sql: true
+
+# 로컬 테스트용 AWS S3 (필요 시 로컬 전용 버킷이나 액세스키 사용)
+cloud:
+  aws:
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: ${AWS_S3_BUCKET:local-zipcheck-bucket}
