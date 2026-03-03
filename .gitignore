@@ -95,3 +95,7 @@ yarn-error.log*
 
 # Kubernetes secrets file
 secrets.yaml
+
+# Local development and sensitive files
+run_local.sh
+src/main/resources/application.properties

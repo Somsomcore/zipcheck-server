@@ -26,10 +26,12 @@ public class AppConfig {
                 .codecs(configurer -> {
                     configurer.defaultCodecs().jackson2JsonEncoder(new Jackson2JsonEncoder(xmlMapper, MediaType.APPLICATION_XML));
                     configurer.defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(xmlMapper, MediaType.APPLICATION_XML));
+
+                    configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024);
                 }).build();
 
         return WebClient.builder()
-                .baseUrl(API_BASE_URL) // 👈 수정된 Base URL
+                .baseUrl(API_BASE_URL)
                 .exchangeStrategies(exchangeStrategies)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_XML_VALUE)
                 .build();
