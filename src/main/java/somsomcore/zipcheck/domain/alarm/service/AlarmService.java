@@ -2,8 +2,12 @@ package somsomcore.zipcheck.domain.alarm.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.io.IOException;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import somsomcore.zipcheck.domain.alarm.repository.AlarmEmitterRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +34,9 @@ public class AlarmService {
 
     private final AlarmRepository alarmRepository;
     private final UserRepository userRepository;
+    private final AlarmEmitterRepository alarmEmitterRepository;
+
+    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60; // 1시간
 
     @Transactional(readOnly = true)
     public AlarmResponseDTO.AlarmListResultDTO getAlarms(Long receiverId, int page, int size) {
@@ -67,8 +74,7 @@ public class AlarmService {
                 TITLE_SUBMITTED,
                 report.getUser().getId(),
                 senderId,
-                report
-        );
+                report);
 
         List<User> admins = userRepository.findAllByRole(Role.ADMIN);
         for (User admin : admins) {
@@ -77,8 +83,7 @@ public class AlarmService {
                     TITLE_PENDING,
                     admin.getId(),
                     senderId,
-                    report
-            );
+                    report);
         }
     }
 
@@ -88,15 +93,14 @@ public class AlarmService {
                 TITLE_REJECTED,
                 report.getUser().getId(),
                 adminId,
-                report
-        );
+                report);
     }
 
     private void createAlarm(AlarmType type,
-                             String title,
-                             Long receiverId,
-                             Long senderId,
-                             Report report) {
+            String title,
+            Long receiverId,
+            Long senderId,
+            Report report) {
 
         Alarm alarm = Alarm.builder()
                 .type(type)
@@ -108,6 +112,50 @@ public class AlarmService {
                 .build();
 
         alarmRepository.save(alarm);
+
+        // SSE 알람 실시간 전송 (Push)
+        String receiverIdStr = String.valueOf(receiverId);
+        String eventId = receiverIdStr + "_" + System.currentTimeMillis();
+        Map<String, SseEmitter> emitters = alarmEmitterRepository.findAllEmitterStartWithByMemberId(receiverIdStr);
+        emitters.forEach((key, emitter) -> {
+            alarmEmitterRepository.saveEventCache(key, alarm);
+            sendNotification(emitter, eventId, key, toAlarmItemDTO(alarm));
+        });
+    }
+
+    public SseEmitter subscribe(Long userId, String lastEventId) {
+        String emitterId = userId + "_" + System.currentTimeMillis();
+        SseEmitter emitter = alarmEmitterRepository.save(emitterId, new SseEmitter(DEFAULT_TIMEOUT));
+
+        emitter.onCompletion(() -> alarmEmitterRepository.deleteById(emitterId));
+        emitter.onTimeout(() -> alarmEmitterRepository.deleteById(emitterId));
+        emitter.onError((e) -> alarmEmitterRepository.deleteById(emitterId));
+
+        // 503 방지: 더미 데이터 전송
+        String eventId = userId + "_" + System.currentTimeMillis();
+        sendNotification(emitter, eventId, emitterId, "EventStream Created. [userId=" + userId + "]");
+
+        // 미수신 이벤트 전송 로직 (옵션)
+        if (lastEventId != null && !lastEventId.isEmpty()) {
+            Map<String, Object> events = alarmEmitterRepository
+                    .findAllEventCacheStartWithByMemberId(String.valueOf(userId));
+            events.entrySet().stream()
+                    .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
+                    .forEach(entry -> sendNotification(emitter, entry.getKey(), emitterId, entry.getValue()));
+        }
+
+        return emitter;
+    }
+
+    private void sendNotification(SseEmitter emitter, String eventId, String emitterId, Object data) {
+        try {
+            emitter.send(SseEmitter.event()
+                    .id(eventId)
+                    .name("alarm")
+                    .data(data));
+        } catch (IOException exception) {
+            alarmEmitterRepository.deleteById(emitterId);
+        }
     }
 
     private AlarmResponseDTO.AlarmItemDTO toAlarmItemDTO(Alarm alarm) {
@@ -120,5 +168,10 @@ public class AlarmService {
                 .confirmed(alarm.getIsConfirmed())
                 .createdAt(alarm.getCreatedAt())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean hasUnreadAlarms(Long receiverId) {
+        return alarmRepository.existsByReceiverIdAndIsConfirmedFalse(receiverId);
     }
 }

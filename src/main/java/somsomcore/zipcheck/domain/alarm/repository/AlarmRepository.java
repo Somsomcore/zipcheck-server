@@ -22,4 +22,7 @@ public interface AlarmRepository extends JpaRepository<Alarm, Long> {
          + "AND a.createdAt <= :threshold")
     int markAllConfirmedUntil(@Param("receiverId") Long receiverId,
                               @Param("threshold") LocalDateTime threshold);
+
+
+    boolean existsByReceiverIdAndIsConfirmedFalse(Long receiverId);
 }
