@@ -47,6 +47,15 @@ public class ItemDto {
     @JacksonXmlProperty(localName = "monthlyRent") // <monthlyRent> (예: "150" 또는 "0")
     private String monthlyRentAmount; // String으로 받고 Service에서 파싱
 
+    @JacksonXmlProperty(localName = "mothlyRent") // 공공데이터포털 오타 반영 (<mothlyRent>)
+    private String mothlyRentAmount;
+
+    public String getMonthlyRentAmount() {
+        if (monthlyRentAmount != null && !monthlyRentAmount.trim().isEmpty()) return monthlyRentAmount;
+        if (mothlyRentAmount != null && !mothlyRentAmount.trim().isEmpty()) return mothlyRentAmount;
+        return null;
+    }
+
     @JacksonXmlProperty(localName = "preDeposit") // <preDeposit>
     private String previousDeposit;
 
@@ -65,6 +74,15 @@ public class ItemDto {
     // 2. 계약면적 (단독/다가구/연립용)
     @JacksonXmlProperty(localName = "totalFloorAr")
     private Double totalFloorAr; // (totalFloorAr)
+
+    @JacksonXmlProperty(localName = "cntrctAr")
+    private Double cntrctAr; // (단독/다가구 전월세 데이터의 실제 계약면적 태그)
+
+    public Double getTotalFloorAr() {
+        if (totalFloorAr != null && totalFloorAr > 0.0) return totalFloorAr;
+        if (cntrctAr != null && cntrctAr > 0.0) return cntrctAr;
+        return null;
+    }
 
     // 3. 주택 유형 (단독/다가구/연립 구분용)
     @JacksonXmlProperty(localName = "houseType")
