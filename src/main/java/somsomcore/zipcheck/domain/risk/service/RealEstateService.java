@@ -71,8 +71,8 @@ public class RealEstateService {
                 })
 
                 .filter(item -> {
-                    // 아파트, 오피스텔은 이 필터가 필요 없음
-                    if ("아파트".equals(propertyType) || "오피스텔".equals(propertyType)|| "연립다세대".equals(propertyType)) {
+                    // 아파트, 오피스텔, 연립다세대, 단독, 다가구는 이미 파라미터별로 API가 분리 호출되므로 houseType 검사를 면제
+                    if ("아파트".equals(propertyType) || "오피스텔".equals(propertyType) || "연립다세대".equals(propertyType) || "단독".equals(propertyType) || "다가구".equals(propertyType)) {
                         return true;
                     }
                     return propertyType.equals(item.getHouseType());
