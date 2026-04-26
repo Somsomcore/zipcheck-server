@@ -134,7 +134,7 @@ public class RealEstateService {
         }
 
 
-        Double riskScore = calculateRiskScore(percentDifference);
+        Double riskScore = calculateRiskScore(percentDifference, averageRent, standardDeviation);
         RiskLevel riskLevel = calculateRiskLevel(riskScore);
 
         double finalAverage = (count == 0) ? 0.0 : averageRent;
@@ -236,15 +236,14 @@ public class RealEstateService {
         }
 
     }
-    private Double calculateRiskScore(double percentDifference) {
-
-        double absPercentDifference = Math.abs(percentDifference);
-
-        double riskScore = absPercentDifference * 2.0;
-
-        double finalScore = Math.min(riskScore, 100.0);
-
-
+    private Double calculateRiskScore(double percentDifference, double averageRent, double standardDeviation) {
+        if (standardDeviation == 0 || averageRent == 0) {
+            return 0.0;
+        }
+        // z-score: 요청 보증금이 평균에서 표준편차 몇 배 벗어났는지 (방향 무관)
+        double zScore = Math.abs(percentDifference) / 100.0 * averageRent / standardDeviation;
+        // z=2.5 이상이면 100점 (Critical), z=1.5 이상이면 60점 (Danger)
+        double finalScore = Math.min(zScore * 40.0, 100.0);
         return Math.round(finalScore * 100.0) / 100.0;
     }
     private RiskLevel calculateRiskLevel(Double score) {
